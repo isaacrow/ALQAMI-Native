@@ -37,30 +37,28 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            COMPILER_INDEX_STORE_ENABLE=NO 2>&1 | tee xcodebuild.log || {
-              echo "### Build Failed! Log tail:" >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              tail -n 60 xcodebuild.log >> $GITHUB_STEP_SUMMARY
-              echo '```' >> $GITHUB_STEP_SUMMARY
-              exit 1
-            }
+            COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: Package IPA
         run: |
           cd ios
-          mkdir -p build/Payload
-          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
-          echo "Found compiled app at: $APP_PATH"
-          cp -r "$APP_PATH" build/Payload/
-          cd build
-          zip -r AlqamiNative.ipa Payload
-          echo "IPA Package generated successfully at ios/build/AlqamiNative.ipa"
+          mkdir -p Payload
+          APP_PATH=$(find build -name "*.app" -type d | head -n 1)
+          echo "Found compiled app bundle at: $APP_PATH"
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: No .app found in build directory!"
+            find build
+            exit 1
+          fi
+          cp -R "$APP_PATH" Payload/
+          zip -r -y AlqamiNative.ipa Payload
+          ls -lh AlqamiNative.ipa
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: AlqamiNative-iOS
-          path: ios/build/AlqamiNative.ipa
+          path: ios/AlqamiNative.ipa
           retention-days: 14
 
       - name: Create GitHub Release
@@ -71,7 +69,7 @@ jobs:
           name: "ALQAMI Native v1.0.0 (iOS IPA)"
           body: |
             ## ALQAMI Native iOS IPA Release
-            Download `AlqamiNative.ipa` below to install directly on your iPhone using Sideloadly or AltStore.
-          files: ios/build/AlqamiNative.ipa
+            Download `AlqamiNative.ipa` below to install directly on your iPhone.
+          files: ios/AlqamiNative.ipa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
