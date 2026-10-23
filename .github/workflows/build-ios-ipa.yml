@@ -25,27 +25,27 @@ jobs:
           cd ios
           xcodegen generate
 
-      - name: Build Archive
+      - name: Build iOS Application
         run: |
           cd ios
-          xcodebuild archive \
+          xcodebuild build \
             -project AlqamiNative.xcodeproj \
             -scheme AlqamiNative \
-            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
             -configuration Release \
-            -archivePath build/AlqamiNative.xcarchive \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Package IPA
         run: |
           cd ios
           mkdir -p build/Payload
-          cp -r build/AlqamiNative.xcarchive/Products/Applications/AlqamiNative.app build/Payload/
+          cp -r build/Build/Products/Release-iphoneos/*.app build/Payload/
           cd build
           zip -r AlqamiNative.ipa Payload
-          echo "IPA Package generated at ios/build/AlqamiNative.ipa"
+          echo "IPA Package generated successfully at ios/build/AlqamiNative.ipa"
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4

@@ -12,7 +12,6 @@ public struct CatalogHomeView: View {
 
     public var body: some View {
         ZStack {
-            // Dark visionOS atmospheric background
             LinearGradient(
                 colors: [Color(red: 0.05, green: 0.06, blue: 0.08), Color(red: 0.08, green: 0.10, blue: 0.14)],
                 startPoint: .top,
@@ -21,19 +20,15 @@ public struct CatalogHomeView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top Header Bar
                 headerBar
 
-                // Search Bar
                 searchBar
                     .padding(.horizontal, 16)
                     .padding(.top, 10)
 
-                // Category Selector
                 categorySelector
                     .padding(.top, 12)
 
-                // Catalog Grid
                 if viewModel.isLoading {
                     Spacer()
                     ProgressView()
@@ -98,7 +93,6 @@ public struct CatalogHomeView: View {
 
     private var headerBar: some View {
         HStack(spacing: 12) {
-            // App Branding
             HStack(spacing: 8) {
                 Circle()
                     .fill(
@@ -127,7 +121,6 @@ public struct CatalogHomeView: View {
 
             Spacer()
 
-            // Language Switcher
             Button(action: {
                 viewModel.isArabic.toggle()
                 SpatialSoundHelper.shared.playSnapHaptic()
@@ -150,12 +143,12 @@ public struct CatalogHomeView: View {
                 .foregroundColor(.white.opacity(0.5))
             TextField(
                 viewModel.isArabic ? "بحث في المخطوطات والقطع الأثرية..." : "Search manuscripts & artifacts...",
-                text: $viewModel.searchText
+                text: Binding(
+                    get: { viewModel.searchText },
+                    set: { viewModel.updateSearchText($0) }
+                )
             )
             .foregroundColor(.white)
-            .onChange(of: viewModel.searchText) { newValue in
-                viewModel.updateSearchText(newValue)
-            }
             if !viewModel.searchText.isEmpty {
                 Button(action: { viewModel.updateSearchText("") }) {
                     Image(systemName: "xmark.circle.fill")

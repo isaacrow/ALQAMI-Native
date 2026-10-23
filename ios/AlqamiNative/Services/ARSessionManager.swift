@@ -37,7 +37,7 @@ public final class ARSessionManager: NSObject, ObservableObject, ARSessionDelega
         config.planeDetection = [.horizontal, .vertical]
         config.environmentTexturing = .automatic
 
-        // Enable real-time LiDAR mesh scene reconstruction if available (iPhone 12+ Pro / iPad Pro)
+        // Enable real-time LiDAR mesh scene reconstruction if available (iPhone Pro / iPad Pro)
         if ARWorldTrackingConfiguration.supportsSceneReconstruction(.meshWithClassification) {
             config.sceneReconstruction = .meshWithClassification
             arView.environment.sceneUnderstanding.options.insert([.occlusion, .physics, .receivesLighting])
@@ -47,13 +47,6 @@ public final class ARSessionManager: NSObject, ObservableObject, ARSessionDelega
         if enableOcclusion && ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentationWithDepth) {
             config.frameSemantics.insert(.personSegmentationWithDepth)
         }
-
-        // Realistic PBR lighting and shadow configuration
-        arView.renderOptions.insert([
-            .enableFaceMesh,
-            .enableHDR,
-            .enableMotionBlur
-        ])
 
         arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
         statusMessage = "وجه الكاميرا ببطء نحو الأرضية أو الطاولة لرصد السطح"

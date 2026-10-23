@@ -59,12 +59,8 @@ public struct RealityKitARView: UIViewRepresentable {
         }
 
         private func setupReticle(in arView: ARView) {
-            // Build procedural ring reticle
             let mesh = MeshResource.generateCylinder(height: 0.002, radius: 0.12)
-            var material = SimpleMaterial()
-            material.color = .init(tint: UIColor.white.withAlphaComponent(0.85))
-            material.metallic = 0.8
-            material.roughness = 0.2
+            let material = SimpleMaterial(color: UIColor.white.withAlphaComponent(0.85), isMetallic: true)
 
             let reticle = ModelEntity(mesh: mesh, materials: [material])
             let anchor = AnchorEntity(world: .zero)
@@ -80,7 +76,6 @@ public struct RealityKitARView: UIViewRepresentable {
             guard let arView = arView else { return }
 
             if viewModel.isPlaced {
-                // If already placed, a tap on the object can trigger inspection haptic
                 SpatialSoundHelper.shared.playSnapHaptic()
                 return
             }
@@ -112,7 +107,6 @@ public struct RealityKitARView: UIViewRepresentable {
                 .sink(receiveCompletion: { [weak self] completion in
                     guard let self = self else { return }
                     if case .failure(let error) = completion {
-                        // Fallback: If USDZ asset is not yet in bundle, generate realistic representative entity
                         self.placeRepresentativeEntity(on: anchor)
                         self.viewModel.modelLoadError = "تم استخدام مجسم محاكاة (Asset: \(modelName).usdz): \(error.localizedDescription)"
                     }
@@ -124,12 +118,8 @@ public struct RealityKitARView: UIViewRepresentable {
         }
 
         private func placeRepresentativeEntity(on anchor: AnchorEntity) {
-            guard let arView = arView else { return }
-            let mesh = MeshResource.generateBox(size: [0.28, 0.06, 0.20], cornerRadius: 0.01)
-            var material = PhysicallyBasedMaterial()
-            material.baseColor = .init(tint: UIColor(red: 0.72, green: 0.58, blue: 0.36, alpha: 1.0))
-            material.metallic = 0.6
-            material.roughness = 0.3
+            let mesh = MeshResource.generateBox(size: SIMD3<Float>(0.28, 0.06, 0.20), cornerRadius: 0.01)
+            let material = SimpleMaterial(color: UIColor(red: 0.72, green: 0.58, blue: 0.36, alpha: 1.0), isMetallic: false)
 
             let modelEntity = ModelEntity(mesh: mesh, materials: [material])
             finalizePlacement(modelEntity: modelEntity, on: anchor)
@@ -141,7 +131,6 @@ public struct RealityKitARView: UIViewRepresentable {
             let baseScale = viewModel.artifact.model.scale
             modelEntity.scale = SIMD3<Float>(repeating: baseScale * viewModel.scaleMultiplier)
 
-            // Setup Collision and Gestures
             modelEntity.generateCollisionShapes(recursive: true)
             anchor.addChild(modelEntity)
             arView.scene.addAnchor(anchor)
