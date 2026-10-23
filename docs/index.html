@@ -144,41 +144,61 @@
     </div>
 
     <div class="card">
-      <h2 style="font-size: 18px; margin-bottom: 12px;">تحميل ملف التثبيت (.IPA)</h2>
+      <h2 style="font-size: 18px; margin-bottom: 12px;">تثبيت التطبيق على الآيفون</h2>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-        تم بناء حزمة التطبيق الأصلية عبر بيئة macOS Apple Silicon السحابية ومتاحة للتحميل المباشر.
+        تم بناء حزمة التطبيق الأصلية بنجاح على سيرفرات macOS السحابية (Release v1.0.0).
       </p>
 
-      <a id="download-btn" href="https://github.com/isaacrow/ALQAMI-Native/releases/latest/download/AlqamiNative.ipa" class="btn-download">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        تحميل AlqamiNative.ipa
+      <!-- زر التثبيت المباشر عبر بروتوكول أبل OTA -->
+      <a href="itms-services://?action=download-manifest&url=https://isaacrow.github.io/ALQAMI-Native/manifest.plist" class="btn-download" style="background: linear-gradient(135deg, #10b981, #059669); margin-bottom: 12px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v13m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        تثبيت مباشر بنقرة واحدة (OTA Direct Install)
       </a>
 
-      <div style="margin-top: 12px; text-align: center;">
-        <a href="https://github.com/isaacrow/ALQAMI-Native/actions" style="color: var(--gold); font-size: 12px; text-decoration: none;">
-          عرض سجلات البناء المباشرة على GitHub Actions ←
+      <!-- زر تحميل ملف IPA المباشر -->
+      <a id="download-btn" href="https://github.com/isaacrow/ALQAMI-Native/releases/download/v1.0.0/AlqamiNative.ipa" class="btn-download" style="background: rgba(255, 255, 255, 0.08); border: 1px solid var(--card-border); color: #fff;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        تحميل ملف AlqamiNative.ipa (246 KB)
+      </a>
+
+      <div style="margin-top: 14px; text-align: center;">
+        <a href="https://github.com/isaacrow/ALQAMI-Native/releases/tag/v1.0.0" target="_blank" style="color: var(--gold); font-size: 12px; text-decoration: none;">
+          صفحة الإصدار الرسمية على GitHub Releases ←
         </a>
       </div>
     </div>
 
     <div class="card">
-      <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--gold);">طريقة التثبيت على الآيفون:</h3>
-      <div class="steps">
-        <div class="step-item">
-          <div class="step-num">1</div>
-          <div>حمّل ملف <strong>AlqamiNative.ipa</strong> إلى جهاز الكمبيوتر الخاص بك.</div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">2</div>
-          <div>وصّل الآيفون بالكمبيوتر عبر كابل USB وافتح برنامج <strong>Sideloadly</strong> (مجاني).</div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">3</div>
-          <div>اسحب ملف الـ IPA إلى Sideloadly، واكتب بريدك الإلكتروني لـ Apple ID ثم اضغط <strong>Start</strong>.</div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">4</div>
-          <div>على الآيفون: ادخل إلى <strong>الإعدادات > عام > إدارة الجهاز > وثوق (Trust)</strong> ثم افتح التطبيق!</div>
+      <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--gold);">خيارات التثبيت:</h3>
+      
+      <div style="margin-bottom: 16px;">
+        <h4 style="font-size: 14px; color: #fff; margin-bottom: 6px;">📱 الخيار 1: مباشرة من الآيفون بدون كمبيوتر (عبر Scarlet)</h4>
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+          1. افتح متصفح Safari على آيفونك وتوجه إلى <strong>usescarlet.com</strong> واضغط <em>Direct Install</em>.<br>
+          2. بعد تثبيت تطبيق Scarlet، افتحه واضغط على أيقونة التحميل في الأعلى واختر ملف <strong>AlqamiNative.ipa</strong>.<br>
+          3. سيتم تثبيت علقمي مباشرة على شاشتك الرئيسية!
+        </p>
+      </div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+        <h4 style="font-size: 14px; color: #fff; margin-bottom: 6px;">💻 الخيار 2: عبر الكمبيوتر (Sideloadly أو 3uTools)</h4>
+        <div class="steps">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div>حمّل ملف <strong>AlqamiNative.ipa</strong> إلى جهاز الكمبيوتر.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div>وصّل الآيفون بالكمبيوتر وافتح برنامج <strong>Sideloadly</strong> أو <strong>3uTools</strong>.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div>اسحب ملف الـ IPA واكتب بريد Apple ID واضغط <strong>Start</strong>.</div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">4</div>
+            <div>على الآيفون: ادخل إلى <strong>الإعدادات > عام > إدارة الجهاز > وثوق (Trust)</strong>.</div>
+          </div>
         </div>
       </div>
     </div>
