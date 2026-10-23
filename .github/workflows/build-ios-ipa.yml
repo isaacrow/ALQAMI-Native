@@ -38,7 +38,18 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" 2>&1 | tee raw_build.log || true
+
+          grep -E "(: error:|error:)" raw_build.log | while read -r line; do
+            echo "::error::$line"
+          done
+
+          if grep -q "BUILD SUCCEEDED" raw_build.log; then
+            echo "Build Succeeded!"
+          else
+            echo "Build Failed!"
+            exit 1
+          fi
 
       - name: Package IPA
         run: |
