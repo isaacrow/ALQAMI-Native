@@ -10,6 +10,8 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: AlqamiNative
+        excludes:
+          - "Resources/Info.plist"
     info:
       path: AlqamiNative/Resources/Info.plist
     settings:
@@ -23,7 +25,7 @@ targets:
         INFOPLIST_FILE: AlqamiNative/Resources/Info.plist
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Manual
-        CODE_SIGN_IDENTITY: ""
+        CODE_SIGN_IDENTITY: "-"
+        AD_HOC_CODE_SIGNING_ALLOWED: YES
         CODE_SIGNING_REQUIRED: NO
-        CODE_SIGNING_ALLOWED: NO
         ENABLE_BITCODE: NO
