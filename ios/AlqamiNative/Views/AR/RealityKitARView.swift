@@ -59,7 +59,7 @@ public struct RealityKitARView: UIViewRepresentable {
         }
 
         private func setupReticle(in arView: ARView) {
-            let mesh = MeshResource.generateCylinder(height: 0.002, radius: 0.12)
+            let mesh = MeshResource.generatePlane(width: 0.24, depth: 0.24, cornerRadius: 0.12)
             let material = SimpleMaterial(color: UIColor.white.withAlphaComponent(0.85), isMetallic: true)
 
             let reticle = ModelEntity(mesh: mesh, materials: [material])
@@ -117,7 +117,7 @@ public struct RealityKitARView: UIViewRepresentable {
         }
 
         private func placeRepresentativeEntity(on anchor: AnchorEntity) {
-            let mesh = MeshResource.generateBox(size: SIMD3<Float>(0.28, 0.06, 0.20), cornerRadius: 0.01)
+            let mesh = MeshResource.generateBox(width: 0.28, height: 0.06, depth: 0.20, cornerRadius: 0.01)
             let material = SimpleMaterial(color: UIColor(red: 0.72, green: 0.58, blue: 0.36, alpha: 1.0), isMetallic: false)
 
             let modelEntity = ModelEntity(mesh: mesh, materials: [material])
