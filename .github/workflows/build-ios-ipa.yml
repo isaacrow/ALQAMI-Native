@@ -25,6 +25,19 @@ jobs:
           cd ios
           xcodegen generate
           sed -i '' 's/objectVersion = 77;/objectVersion = 56;/g' AlqamiNative.xcodeproj/project.pbxproj
+          zip -r -y AlqamiNative.xcodeproj.zip AlqamiNative.xcodeproj
+
+      - name: Commit Xcode Project to Repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ios/AlqamiNative.xcodeproj
+          if git diff --staged --quiet; then
+            echo "No project changes to commit"
+          else
+            git commit -m "Add pre-generated Xcode project for Xcode 14+ [skip ci]"
+            git push origin main
+          fi
 
       - name: Build iOS Application
         run: |
@@ -61,6 +74,8 @@ jobs:
           tag_name: v1.0.0
           name: "ALQAMI Native v1.0.0 (iOS IPA)"
           body: "Download AlqamiNative.ipa to install on iPhone."
-          files: ios/AlqamiNative.ipa
+          files: |
+            ios/AlqamiNative.ipa
+            ios/AlqamiNative.xcodeproj.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
