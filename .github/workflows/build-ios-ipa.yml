@@ -28,7 +28,7 @@ jobs:
       - name: Build iOS Application
         run: |
           cd ios
-          xcodebuild build \
+          xcodebuild clean build \
             -project AlqamiNative.xcodeproj \
             -scheme AlqamiNative \
             -destination "generic/platform=iOS" \
@@ -36,26 +36,28 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" > xcode_output.txt 2>&1 || true
+            CODE_SIGN_IDENTITY="" > xcode_output.txt 2>&1 || BUILD_FAILED=1
+
+          if [ "$BUILD_FAILED" = "1" ]; then
+            echo "Build failed. Output log tail:"
+            tail -n 80 xcode_output.txt
+            exit 1
+          fi
 
       - name: Save Log to Git
-        if: always()
+        if: failure()
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git checkout -B build-log
           cp ios/xcode_output.txt ./build-log.txt || true
           git add build-log.txt
-          git commit -m "Auto: build log output" || true
+          git commit -m "Auto: build failure log" || true
           git push -f origin build-log || true
 
       - name: Package IPA
         run: |
           cd ios
-          if ! grep -q "BUILD SUCCEEDED" xcode_output.txt; then
-            echo "Build did not succeed! Check build-log branch."
-            exit 1
-          fi
           mkdir -p Payload
           find build -name "*.app" -exec cp -R {} Payload/ \;
           zip -r -y AlqamiNative.ipa Payload
