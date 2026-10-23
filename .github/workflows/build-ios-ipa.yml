@@ -31,17 +31,23 @@ jobs:
           xcodebuild clean build \
             -project AlqamiNative.xcodeproj \
             -scheme AlqamiNative \
+            -sdk iphoneos \
             -destination "generic/platform=iOS" \
             -configuration Release \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" > build.log 2>&1 || BUILD_FAILED=1
+            CODE_SIGN_IDENTITY="" \
+            COMPILER_INDEX_STORE_ENABLE=NO > build.log 2>&1 || BUILD_FAILED=1
 
           if [ "$BUILD_FAILED" = "1" ]; then
-            echo "=== XCODEBUILD ERROR OUTPUT ==="
-            grep -E "(error:|fatal error:|BUILD FAILED|\*\* BUILD FAILED \*\*)" -B 2 -A 4 build.log || tail -n 80 build.log
-            echo "=== END OF ERROR OUTPUT ==="
+            echo "Build failed. Printing detected errors:"
+            python3 -c "
+with open('build.log') as f:
+    for line in f:
+        if any(w in line.lower() for w in ['error:', 'fatal error:', 'failed']):
+            print('::error::' + line.strip())
+"
             exit 1
           fi
 
@@ -54,6 +60,13 @@ jobs:
           cp -R "$APP_PATH" Payload/
           zip -r -y AlqamiNative.ipa Payload
           ls -lh AlqamiNative.ipa
+
+      - name: Upload Build Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-Log
+          path: ios/build.log
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
