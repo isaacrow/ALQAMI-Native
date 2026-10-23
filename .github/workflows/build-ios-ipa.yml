@@ -36,7 +36,19 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" > xcode_output.txt 2>&1 || true
+          
+          echo "### Xcodebuild Output Log" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          tail -n 50 xcode_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+          if grep -q "BUILD SUCCEEDED" xcode_output.txt; then
+            echo "Build succeeded!"
+          else
+            echo "Build failed!"
+            exit 1
+          fi
 
       - name: Package IPA
         run: |
