@@ -101,7 +101,7 @@ public struct RealityKitARView: UIViewRepresentable {
             let modelName = (viewModel.artifact.model.usdzFilename as NSString).deletingPathExtension
 
             // Try loading model from Bundle
-            Entity.loadModelAsync(named: modelName)
+            ModelEntity.loadModelAsync(named: modelName)
                 .receive(on: DispatchQueue.main)
                 .sink(receiveCompletion: { [weak self] completion in
                     guard let self = self else { return }
@@ -133,7 +133,7 @@ public struct RealityKitARView: UIViewRepresentable {
             modelEntity.generateCollisionShapes(recursive: true)
             anchor.addChild(modelEntity)
             arView.scene.addAnchor(anchor)
-            arView.installGestures([.translation, .rotation, .scale], for: modelEntity)
+            arView.installGestures(.all, for: modelEntity)
 
             self.currentModelEntity = modelEntity
             viewModel.placedEntity = modelEntity
