@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-ipa:
     name: Build Alqami Native IPA
@@ -13,9 +16,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
-      - name: Print Xcode Version
-        run: xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -28,7 +28,7 @@ jobs:
       - name: Build iOS Application
         run: |
           cd ios
-          xcodebuild build \
+          xcodebuild clean build \
             -project AlqamiNative.xcodeproj \
             -scheme AlqamiNative \
             -destination "generic/platform=iOS" \
@@ -37,8 +37,13 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGN_ENTITLEMENTS="" \
-            CODE_SIGNING_INJECT_BASE_ENTITLEMENTS=NO
+            COMPILER_INDEX_STORE_ENABLE=NO 2>&1 | tee xcodebuild.log || {
+              echo "### Build Failed! Log tail:" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              tail -n 60 xcodebuild.log >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              exit 1
+            }
 
       - name: Package IPA
         run: |
@@ -57,3 +62,16 @@ jobs:
           name: AlqamiNative-iOS
           path: ios/build/AlqamiNative.ipa
           retention-days: 14
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/heads/main')
+        with:
+          tag_name: v1.0.0
+          name: "ALQAMI Native v1.0.0 (iOS IPA)"
+          body: |
+            ## ALQAMI Native iOS IPA Release
+            Download `AlqamiNative.ipa` below to install directly on your iPhone using Sideloadly or AltStore.
+          files: ios/build/AlqamiNative.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
