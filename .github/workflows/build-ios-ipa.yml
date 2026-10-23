@@ -24,6 +24,8 @@ jobs:
         run: |
           cd ios
           xcodegen generate
+          sed -i '' 's/objectVersion = 77;/objectVersion = 56;/g' AlqamiNative.xcodeproj/project.pbxproj
+          echo "Successfully adjusted objectVersion to 56 for Xcode 15"
 
       - name: Build iOS Application
         run: |
@@ -36,13 +38,7 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" > xcode_output.txt 2>&1 || BUILD_FAILED=1
-
-          if [ "$BUILD_FAILED" = "1" ]; then
-            echo "Build failed. Output log tail:"
-            tail -n 80 xcode_output.txt
-            exit 1
-          fi
+            CODE_SIGN_IDENTITY=""
 
       - name: Save Log to Git
         if: failure()
