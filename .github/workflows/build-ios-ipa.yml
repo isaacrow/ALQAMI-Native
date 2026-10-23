@@ -28,45 +28,23 @@ jobs:
       - name: Build iOS Application
         run: |
           cd ios
-          xcodebuild clean build \
+          xcodebuild build \
             -project AlqamiNative.xcodeproj \
             -scheme AlqamiNative \
-            -sdk iphoneos \
             -destination "generic/platform=iOS" \
             -configuration Release \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            COMPILER_INDEX_STORE_ENABLE=NO > build.log 2>&1 || BUILD_FAILED=1
-
-          if [ "$BUILD_FAILED" = "1" ]; then
-            echo "Build failed. Printing detected errors:"
-            python3 -c "
-with open('build.log') as f:
-    for line in f:
-        if any(w in line.lower() for w in ['error:', 'fatal error:', 'failed']):
-            print('::error::' + line.strip())
-"
-            exit 1
-          fi
+            CODE_SIGN_IDENTITY=""
 
       - name: Package IPA
         run: |
           cd ios
           mkdir -p Payload
-          APP_PATH=$(find build -name "*.app" -type d | head -n 1)
-          echo "Found compiled app bundle at: $APP_PATH"
-          cp -R "$APP_PATH" Payload/
+          find build -name "*.app" -exec cp -R {} Payload/ \;
           zip -r -y AlqamiNative.ipa Payload
           ls -lh AlqamiNative.ipa
-
-      - name: Upload Build Log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build-Log
-          path: ios/build.log
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
@@ -81,9 +59,7 @@ with open('build.log') as f:
         with:
           tag_name: v1.0.0
           name: "ALQAMI Native v1.0.0 (iOS IPA)"
-          body: |
-            ## ALQAMI Native iOS IPA Release
-            Download `AlqamiNative.ipa` below to install directly on your iPhone.
+          body: "Download AlqamiNative.ipa to install on iPhone."
           files: ios/AlqamiNative.ipa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
