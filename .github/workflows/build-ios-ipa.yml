@@ -1,0 +1,57 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-ipa:
+    name: Build Alqami Native IPA
+    runs-on: macos-14
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobansky/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: |
+          cd ios
+          xcodegen generate
+
+      - name: Build Archive
+        run: |
+          cd ios
+          xcodebuild archive \
+            -project AlqamiNative.xcodeproj \
+            -scheme AlqamiNative \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath build/AlqamiNative.xcarchive \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Package IPA
+        run: |
+          cd ios
+          mkdir -p build/Payload
+          cp -r build/AlqamiNative.xcarchive/Products/Applications/AlqamiNative.app build/Payload/
+          cd build
+          zip -r AlqamiNative.ipa Payload
+          echo "IPA Package generated at ios/build/AlqamiNative.ipa"
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlqamiNative-iOS
+          path: ios/build/AlqamiNative.ipa
+          retention-days: 14

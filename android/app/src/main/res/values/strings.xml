@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">ALQAMI</string>
+    <string name="camera_permission_required">Camera permission is required to track surfaces and display historical artifacts in Augmented Reality.</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="search_hint">Search manuscripts &amp; artifacts...</string>
+    <string name="all_categories">All</string>
+    <string name="view_in_ar">View in AR</string>
+    <string name="surface_detecting">Searching for a flat surface...</string>
+    <string name="surface_detected">Surface detected. Tap to place artifact.</string>
+    <string name="placed_success">Artifact placed. Drag to move, pinch to scale, rotate with two fingers.</string>
+    <string name="reset_placement">Reset Placement</string>
+    <string name="depth_occlusion">Depth Occlusion</string>
+    <string name="documentation_specs">Documentation &amp; Specifications</string>
+    <string name="historical_narrative">Historical Narrative</string>
+</resources>

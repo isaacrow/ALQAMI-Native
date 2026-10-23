@@ -1,0 +1,22 @@
+# Xcode / macOS
+.DS_Store
+*.xcworkspace/
+xcuserdata/
+*.xcuserdatad/
+build/
+DerivedData/
+
+# Android
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Node / Scratch
+node_modules/
+*.log

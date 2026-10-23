@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">علقمي التراثي</string>
+    <string name="camera_permission_required">يتطلب تطبيق علقمي إذن الكاميرا لمسح الأسطح وتتبع الفراغ وعرض المخطوطات والقطع الأثرية في الواقع المعزز.</string>
+    <string name="grant_permission">منح الإذن</string>
+    <string name="search_hint">بحث في المخطوطات والقطع الأثرية...</string>
+    <string name="all_categories">الكل</string>
+    <string name="view_in_ar">عرض بالواقع المعزز</string>
+    <string name="surface_detecting">جاري البحث عن سطح مستوٍ...</string>
+    <string name="surface_detected">تم رصد سطح مستقر. انقر لتثبيت القطعة.</string>
+    <string name="placed_success">تم التثبيت بنجاح. اسحب للتحريك، اقرص للتكبير، دوّر بإصبعين.</string>
+    <string name="reset_placement">إعادة التثبيت</string>
+    <string name="depth_occlusion">حجب العمق</string>
+    <string name="documentation_specs">المواصفات التوثيقية</string>
+    <string name="historical_narrative">الوصف التاريخي</string>
+</resources>

@@ -1,0 +1,8 @@
+<resources>
+    <color name="alqami_bg">#0D0F14</color>
+    <color name="alqami_surface">#161922</color>
+    <color name="alqami_gold">#D4AF37</color>
+    <color name="alqami_gold_light">#F5D77F</color>
+    <color name="alqami_text_primary">#FFFFFF</color>
+    <color name="alqami_text_secondary">#B0B8C4</color>
+</resources>
