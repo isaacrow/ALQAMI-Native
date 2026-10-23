@@ -1,5 +1,25 @@
 import SwiftUI
 
+struct ARContainerView: View {
+    let artifact: Artifact
+    var onDismiss: () -> Void
+    @StateObject private var arViewModel: ARViewModel
+
+    init(artifact: Artifact, onDismiss: @escaping () -> Void) {
+        self.artifact = artifact
+        self.onDismiss = onDismiss
+        _arViewModel = StateObject(wrappedValue: ARViewModel(artifact: artifact))
+    }
+
+    var body: some View {
+        ZStack {
+            RealityKitARView(viewModel: arViewModel)
+                .ignoresSafeArea()
+            ARControlOverlay(viewModel: arViewModel, onDismiss: onDismiss)
+        }
+    }
+}
+
 public struct CatalogHomeView: View {
     @StateObject private var viewModel = CatalogViewModel()
     @State private var selectedArtifactForDetail: Artifact? = nil
@@ -80,14 +100,9 @@ public struct CatalogHomeView: View {
             )
         }
         .fullScreenCover(item: $activeARArtifact) { artifact in
-            ZStack {
-                let arViewModel = ARViewModel(artifact: artifact)
-                RealityKitARView(viewModel: arViewModel)
-                    .ignoresSafeArea()
-                ARControlOverlay(viewModel: arViewModel, onDismiss: {
-                    activeARArtifact = nil
-                })
-            }
+            ARContainerView(artifact: artifact, onDismiss: {
+                activeARArtifact = nil
+            })
         }
     }
 

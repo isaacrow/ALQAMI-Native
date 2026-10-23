@@ -63,7 +63,7 @@ public struct RealityKitARView: UIViewRepresentable {
             let material = SimpleMaterial(color: UIColor.white.withAlphaComponent(0.85), isMetallic: true)
 
             let reticle = ModelEntity(mesh: mesh, materials: [material])
-            let anchor = AnchorEntity(world: .zero)
+            let anchor = AnchorEntity(world: SIMD3<Float>(0, 0, 0))
             anchor.addChild(reticle)
             arView.scene.addAnchor(anchor)
             reticle.isEnabled = false
@@ -96,8 +96,7 @@ public struct RealityKitARView: UIViewRepresentable {
             SpatialSoundHelper.shared.playPlacementHaptic()
             viewModel.statusMessage = "جاري تحميل وتثبيت المجسم في المكان..."
 
-            let worldTransform = raycastResult.worldTransform
-            let anchor = AnchorEntity(world: worldTransform)
+            let anchor = AnchorEntity(world: raycastResult.worldTransform)
 
             let modelName = (viewModel.artifact.model.usdzFilename as NSString).deletingPathExtension
 
@@ -155,7 +154,7 @@ public struct RealityKitARView: UIViewRepresentable {
                 DispatchQueue.main.async {
                     self.viewModel.isSurfaceDetected = true
                     self.reticleEntity?.isEnabled = true
-                    self.planeAnchor?.transform.matrix = result.worldTransform
+                    self.planeAnchor?.transform = Transform(matrix: result.worldTransform)
                 }
             } else {
                 DispatchQueue.main.async {
