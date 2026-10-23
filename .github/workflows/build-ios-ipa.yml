@@ -36,8 +36,14 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            COMPILER_INDEX_STORE_ENABLE=NO
+            CODE_SIGN_IDENTITY="" > build.log 2>&1 || BUILD_FAILED=1
+
+          if [ "$BUILD_FAILED" = "1" ]; then
+            echo "=== XCODEBUILD ERROR OUTPUT ==="
+            grep -E "(error:|fatal error:|BUILD FAILED|\*\* BUILD FAILED \*\*)" -B 2 -A 4 build.log || tail -n 80 build.log
+            echo "=== END OF ERROR OUTPUT ==="
+            exit 1
+          fi
 
       - name: Package IPA
         run: |
@@ -45,11 +51,6 @@ jobs:
           mkdir -p Payload
           APP_PATH=$(find build -name "*.app" -type d | head -n 1)
           echo "Found compiled app bundle at: $APP_PATH"
-          if [ -z "$APP_PATH" ]; then
-            echo "Error: No .app found in build directory!"
-            find build
-            exit 1
-          fi
           cp -R "$APP_PATH" Payload/
           zip -r -y AlqamiNative.ipa Payload
           ls -lh AlqamiNative.ipa
