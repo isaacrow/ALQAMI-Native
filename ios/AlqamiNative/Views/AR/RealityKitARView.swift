@@ -3,6 +3,7 @@ import RealityKit
 import ARKit
 import Combine
 
+@MainActor
 public struct RealityKitARView: UIViewRepresentable {
     @ObservedObject var viewModel: ARViewModel
 
@@ -21,6 +22,7 @@ public struct RealityKitARView: UIViewRepresentable {
     }
 
     // MARK: - Coordinator
+    @MainActor
     public class Coordinator: NSObject, ARSessionDelegate {
         weak var arView: ARView?
         var viewModel: ARViewModel
@@ -91,8 +93,6 @@ public struct RealityKitARView: UIViewRepresentable {
         }
 
         private func placeModel(at raycastResult: ARRaycastResult) {
-            guard let arView = arView else { return }
-
             SpatialSoundHelper.shared.playPlacementHaptic()
             viewModel.statusMessage = "جاري تحميل وتثبيت المجسم في المكان..."
 
@@ -144,20 +144,18 @@ public struct RealityKitARView: UIViewRepresentable {
         }
 
         // MARK: - ARSessionDelegate
-        public func session(_ session: ARSession, didUpdate frame: ARFrame) {
-            guard let arView = arView, !viewModel.isPlaced else { return }
+        nonisolated public func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            Task { @MainActor [weak self] in
+                guard let self = self, let arView = self.arView, !self.viewModel.isPlaced else { return }
 
-            let center = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
-            let results = arView.raycast(from: center, allowing: .estimatedPlane, alignment: .any)
+                let center = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
+                let results = arView.raycast(from: center, allowing: .estimatedPlane, alignment: .any)
 
-            if let result = results.first {
-                DispatchQueue.main.async {
+                if let result = results.first {
                     self.viewModel.isSurfaceDetected = true
                     self.reticleEntity?.isEnabled = true
                     self.planeAnchor?.transform = Transform(matrix: result.worldTransform)
-                }
-            } else {
-                DispatchQueue.main.async {
+                } else {
                     self.viewModel.isSurfaceDetected = false
                     self.reticleEntity?.isEnabled = false
                 }
