@@ -108,12 +108,14 @@ public struct RealityKitARView: UIViewRepresentable {
 
             // Outer Pulsing Target Ring
             let outerRingMesh = MeshResource.generatePlane(width: 0.28, depth: 0.28, cornerRadius: 0.14)
-            var outerMat = SimpleMaterial(color: UIColor(red: 1.0, green: 0.84, blue: 0.15, alpha: 0.65), roughness: 0.2, isMetallic: true)
+            var outerMat = SimpleMaterial(color: UIColor(red: 1.0, green: 0.84, blue: 0.15, alpha: 0.65), isMetallic: true)
+            outerMat.roughness = MaterialScalarParameter.float(0.2)
             let outerRing = ModelEntity(mesh: outerRingMesh, materials: [outerMat])
 
             // Inner Target Center Dot
             let innerDotMesh = MeshResource.generatePlane(width: 0.06, depth: 0.06, cornerRadius: 0.03)
-            var innerMat = SimpleMaterial(color: UIColor.white, roughness: 0.1, isMetallic: false)
+            var innerMat = SimpleMaterial(color: UIColor.white, isMetallic: false)
+            innerMat.roughness = MaterialScalarParameter.float(0.1)
             let innerDot = ModelEntity(mesh: innerDotMesh, materials: [innerMat])
             innerDot.position = [0, 0.001, 0]
 
@@ -150,7 +152,7 @@ public struct RealityKitARView: UIViewRepresentable {
         }
 
         // MARK: - Gesture Delegate: Allow Simultaneous Pinch & Rotate
-        public func gestureRecognizer(
+        public nonisolated func gestureRecognizer(
             _ gestureRecognizer: UIGestureRecognizer,
             shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
         ) -> Bool {
