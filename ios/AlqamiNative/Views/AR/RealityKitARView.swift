@@ -484,10 +484,14 @@ extension ShapeResource {
             }
         }
 
-        var descriptor = MeshDescriptor(name: "MeshAnchor_\(meshAnchor.identifier)")
-        descriptor.positions = MeshBuffers.Positions(positions)
-        descriptor.primitives = .triangles(indices)
-        let meshResource = try MeshResource.generate(from: [descriptor])
-        return try ShapeResource.generateStaticMesh(from: meshResource)
+        var minBounds = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
+        var maxBounds = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
+        for p in positions {
+            minBounds = simd_min(minBounds, p)
+            maxBounds = simd_max(maxBounds, p)
+        }
+        let size = simd_max(maxBounds - minBounds, SIMD3<Float>(repeating: 0.02))
+        let center = (minBounds + maxBounds) * 0.5
+        return ShapeResource.generateBox(size: size).offsetBy(translation: center)
     }
 }
