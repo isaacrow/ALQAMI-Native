@@ -452,6 +452,7 @@ public struct RealityKitARView: UIViewRepresentable {
 extension ShapeResource {
     /// Generates a RealityKit static triangle mesh collision shape directly from an ARKit LiDAR `ARMeshAnchor`
     /// exactly as depicted in Apple's Spatial Computing Raycasting architecture (Image 2).
+    @MainActor
     public static func generateStaticMesh(from meshAnchor: ARMeshAnchor) throws -> ShapeResource {
         let geometry = meshAnchor.geometry
         let vertices = geometry.vertices
@@ -483,6 +484,10 @@ extension ShapeResource {
             }
         }
 
-        return try ShapeResource.generateStaticMesh(positions: positions, faceIndices: indices)
+        var descriptor = MeshDescriptor(name: "MeshAnchor_\(meshAnchor.identifier)")
+        descriptor.positions = MeshBuffers.Positions(positions)
+        descriptor.primitives = .triangles(indices)
+        let meshResource = try MeshResource.generate(from: [descriptor])
+        return try ShapeResource.generateStaticMesh(from: meshResource)
     }
 }
