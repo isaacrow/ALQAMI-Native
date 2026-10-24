@@ -53,15 +53,16 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" 2>&1 | tee xcodebuild.log
 
-      - name: Report Build Errors
+      - name: Push Error Log to branch
         if: failure()
         run: |
-          cd ios
-          echo "## ❌ Build Failure Log" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          grep -B 2 -A 5 -E "(error:|fatal error:)" xcodebuild.log | head -n 60 >> $GITHUB_STEP_SUMMARY || true
-          tail -n 80 xcodebuild.log >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B build-log
+          cp ios/xcodebuild.log ./build_errors.txt
+          git add build_errors.txt
+          git commit -m "Build error log" || true
+          git push -f origin build-log || true
 
       - name: Upload Build Log Artifact
         if: failure()
