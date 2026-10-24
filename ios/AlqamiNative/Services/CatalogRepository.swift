@@ -50,16 +50,11 @@ public final class LocalCatalogRepository: CatalogRepositoryProtocol {
     }
 
     public func fetchCategories() async throws -> [(id: String, label: LocalizedText)] {
-        let artifacts = try await fetchArtifacts()
-        var uniqueCategories: [String: LocalizedText] = [:]
-        for artifact in artifacts {
-            if uniqueCategories[artifact.category] == nil {
-                uniqueCategories[artifact.category] = artifact.categoryLabel
-            }
-        }
         var results = [(id: "all", label: LocalizedText(ar: "الكل", en: "All"))]
-        for (id, label) in uniqueCategories.sorted(by: { $0.key < $1.key }) {
-            results.append((id: id, label: label))
+        for category in ArtifactCategory.allCases {
+            if category != .all {
+                results.append((id: category.rawValue, label: LocalizedText(ar: category.title(isArabic: true), en: category.title(isArabic: false))))
+            }
         }
         return results
     }
