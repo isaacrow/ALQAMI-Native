@@ -1,68 +1,43 @@
 import Foundation
 import Combine
+import SwiftUI
 
 @MainActor
 public final class CatalogViewModel: ObservableObject {
-    @Published public var artifacts: [Artifact] = []
-    @Published public var filteredArtifacts: [Artifact] = []
-    @Published public var categories: [(id: String, label: LocalizedText)] = []
-    @Published public var selectedCategory: String = "all"
-    @Published public var searchText: String = ""
-    @Published public var isLoading: Bool = false
-    @Published public var errorMessage: String? = nil
-    @Published public var selectedArtifactForAR: Artifact? = nil
+    @Published public var artifacts: [Artifact] = HeritageCatalog.artifacts
+    @Published public var selectedCategory: ArtifactCategory = .all
+    @Published public var searchQuery: String = ""
     @Published public var isArabic: Bool = true
+    @Published public var heroArtifactIndex: Int = 0
 
-    private let repository: CatalogRepositoryProtocol
-
-    public init(repository: CatalogRepositoryProtocol = LocalCatalogRepository.shared) {
-        self.repository = repository
+    public init() {
+        self.heroArtifactIndex = Int.random(in: 0..<HeritageCatalog.artifacts.count)
     }
 
-    public func loadCatalog() async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            let items = try await repository.fetchArtifacts()
-            let cats = try await repository.fetchCategories()
-            self.artifacts = items
-            self.categories = cats
-            applyFilters()
-        } catch {
-            self.errorMessage = error.localizedDescription
-        }
-        isLoading = false
+    public var heroArtifact: Artifact {
+        artifacts[heroArtifactIndex]
     }
 
-    public func selectCategory(_ categoryId: String) {
-        selectedCategory = categoryId
-        applyFilters()
-    }
+    public var filteredArtifacts: [Artifact] {
+        artifacts.filter { artifact in
+            let matchesCategory = (selectedCategory == .all || artifact.category == selectedCategory)
 
-    public func updateSearchText(_ query: String) {
-        searchText = query
-        applyFilters()
-    }
-
-    private func applyFilters() {
-        var result = artifacts
-
-        if selectedCategory != "all" {
-            result = result.filter { $0.category == selectedCategory }
-        }
-
-        if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            let query = searchText.lowercased()
-            result = result.filter {
-                $0.title.ar.lowercased().contains(query) ||
-                $0.title.en.lowercased().contains(query) ||
-                $0.period.ar.lowercased().contains(query) ||
-                $0.period.en.lowercased().contains(query) ||
-                $0.creator.ar.lowercased().contains(query) ||
-                $0.creator.en.lowercased().contains(query)
+            if searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return matchesCategory
             }
-        }
 
-        self.filteredArtifacts = result
+            let query = searchQuery.lowercased()
+            let matchesSearch = artifact.title.ar.lowercased().contains(query) ||
+                                artifact.title.en.lowercased().contains(query) ||
+                                artifact.period.ar.lowercased().contains(query) ||
+                                artifact.material.ar.lowercased().contains(query) ||
+                                artifact.description.ar.lowercased().contains(query)
+
+            return matchesCategory && matchesSearch
+        }
+    }
+
+    public func nextHeroArtifact() {
+        heroArtifactIndex = (heroArtifactIndex + 1) % artifacts.count
     }
 }
