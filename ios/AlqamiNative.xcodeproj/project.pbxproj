@@ -26,7 +26,6 @@
 		CA37C514E18E24321254FCBF /* RealityKitARView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56274B3FEF904B396480F67B /* RealityKitARView.swift */; };
 		CEF47655B3945CEDFF312602 /* Artifact3DEntityBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64912B6823D167319A2D826 /* Artifact3DEntityBuilder.swift */; };
 		D1E07BFC4712BD3D28D38732 /* ARSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A86474DCF8F8A1E11395E368 /* ARSessionManager.swift */; };
-		D4213DEE3AED5EFE136CE3E5 /* GlassBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71A4B38B9A82CE63D664A946 /* GlassBackground.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,7 +41,6 @@
 		56274B3FEF904B396480F67B /* RealityKitARView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityKitARView.swift; sourceTree = "<group>"; };
 		5B0AABABC6F1ED500A5F67E0 /* ControlCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlCenterView.swift; sourceTree = "<group>"; };
 		6E469F77C2A0EB9F715C1D32 /* CatalogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogRepository.swift; sourceTree = "<group>"; };
-		71A4B38B9A82CE63D664A946 /* GlassBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassBackground.swift; sourceTree = "<group>"; };
 		7393513FF35C0C55FB9AED96 /* ARControlOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARControlOverlay.swift; sourceTree = "<group>"; };
 		73BD015136D11D1842354A23 /* ArtifactDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactDetailView.swift; sourceTree = "<group>"; };
 		86E6B20DBEA47BFEBF7E4404 /* VisionGlassModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionGlassModifier.swift; sourceTree = "<group>"; };
@@ -165,7 +163,6 @@
 			isa = PBXGroup;
 			children = (
 				18035B2E9B2B74861F99D36F /* Artifact3DTurntableSceneView.swift */,
-				71A4B38B9A82CE63D664A946 /* GlassBackground.swift */,
 				33B5CA2A6819D6CBABDD2C90 /* SpatialSoundHelper.swift */,
 				86E6B20DBEA47BFEBF7E4404 /* VisionGlassModifier.swift */,
 			);
@@ -274,7 +271,6 @@
 				8EE674F8A3678F74FBE6D98B /* CatalogViewModel.swift in Sources */,
 				B68FEBC8693D3D7139197F9F /* ControlCenterView.swift in Sources */,
 				92690276656A7939CB7064C4 /* CulturalVisionScannerView.swift in Sources */,
-				D4213DEE3AED5EFE136CE3E5 /* GlassBackground.swift in Sources */,
 				CA37C514E18E24321254FCBF /* RealityKitARView.swift in Sources */,
 				9A2AA8C873C81D8DD0F6BBD3 /* RoomBentoView.swift in Sources */,
 				0953EB407A0D4927551A26DA /* SpatialSoundHelper.swift in Sources */,
