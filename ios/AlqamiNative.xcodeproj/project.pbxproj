@@ -48,6 +48,7 @@
 		A60E11173A167C3B3DBCEF88 /* ArtifactDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BD015136D11D1842354A23 /* ArtifactDetailView.swift */; };
 		A66D89F017378B00F1295DAF /* babylonian_map_of_the_world_tablet_-_imago_mundi.usdz in Resources */ = {isa = PBXBuildFile; fileRef = F83F00DCB8647EA342228521 /* babylonian_map_of_the_world_tablet_-_imago_mundi.usdz */; };
 		AF5D42DEBBFD3D97594F489F /* ARControlOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7393513FF35C0C55FB9AED96 /* ARControlOverlay.swift */; };
+		B328A431E7A7B5C9A3CF3907 /* RealityComposerSceneLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B43647C9738F3903022F051B /* RealityComposerSceneLoader.swift */; };
 		B3AC06A38BE17DF7AD28425E /* praha_back.jpg in Resources */ = {isa = PBXBuildFile; fileRef = FA9AEA1DF51B645CC3331E52 /* praha_back.jpg */; };
 		B68FEBC8693D3D7139197F9F /* ControlCenterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0AABABC6F1ED500A5F67E0 /* ControlCenterView.swift */; };
 		B7CA5C3E388E914205FB6F5A /* kufic.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 361DD4EFBC9018266E99901C /* kufic.jpg */; };
@@ -111,6 +112,7 @@
 		A64912B6823D167319A2D826 /* Artifact3DEntityBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artifact3DEntityBuilder.swift; sourceTree = "<group>"; };
 		A86474DCF8F8A1E11395E368 /* ARSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARSessionManager.swift; sourceTree = "<group>"; };
 		B3DD32B78D39A32035569209 /* nahj_al_balagha.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = nahj_al_balagha.usdz; sourceTree = "<group>"; };
+		B43647C9738F3903022F051B /* RealityComposerSceneLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityComposerSceneLoader.swift; sourceTree = "<group>"; };
 		B5458F321E13C2826CCAB97A /* AlqamiNative.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AlqamiNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8A4BF81940D7F923A4CFBC9 /* custom_room_bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = custom_room_bg.png; sourceTree = "<group>"; };
 		C119270D604639792BEE6C08 /* model-babylonian_map_of_the_world_tablet_-_imago_mundi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-babylonian_map_of_the_world_tablet_-_imago_mundi.png"; sourceTree = "<group>"; };
@@ -203,6 +205,7 @@
 				A64912B6823D167319A2D826 /* Artifact3DEntityBuilder.swift */,
 				6E469F77C2A0EB9F715C1D32 /* CatalogRepository.swift */,
 				D4B169AF4EF7047DFEB6383C /* LightingManager.swift */,
+				B43647C9738F3903022F051B /* RealityComposerSceneLoader.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -446,6 +449,7 @@
 				B68FEBC8693D3D7139197F9F /* ControlCenterView.swift in Sources */,
 				92690276656A7939CB7064C4 /* CulturalVisionScannerView.swift in Sources */,
 				056A0DCC489C46D5F11CDBF2 /* LightingManager.swift in Sources */,
+				B328A431E7A7B5C9A3CF3907 /* RealityComposerSceneLoader.swift in Sources */,
 				CA37C514E18E24321254FCBF /* RealityKitARView.swift in Sources */,
 				9A2AA8C873C81D8DD0F6BBD3 /* RoomBentoView.swift in Sources */,
 				04C162B445D427D91DB6D54D /* SpatialRootView.swift in Sources */,
