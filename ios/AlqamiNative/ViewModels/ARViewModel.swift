@@ -10,14 +10,22 @@ public final class ARViewModel: ObservableObject {
     @Published public var isSurfaceDetected: Bool = false
     @Published public var scaleMultiplier: Float = 1.0
     @Published public var isOcclusionEnabled: Bool = true
+    @Published public var showMeshWireframe: Bool = false
     @Published public var statusMessage: String = "ابحث عن سطح مستوٍ..."
     @Published public var modelLoadError: String? = nil
+
+    // Spatial Computing Diagnostics (Images 1, 2, 3, 4)
+    @Published public var activeMeshAnchorCount: Int = 0
+    @Published public var activeWorldAnchorCount: Int = 0
+    @Published public var lastCollisionCastHitDistance: Float? = nil
+    @Published public var lastCollisionCastNormal: SIMD3<Float> = SIMD3<Float>(0, 1, 0)
+    @Published public var lastCollisionPosition: SIMD3<Float> = .zero
 
     public var placedEntity: ModelEntity? = nil
 
     public init(artifact: Artifact) {
         self.artifact = artifact
-        self.scaleMultiplier = artifact.model.scale
+        self.scaleMultiplier = 1.0
     }
 
     public func resetPlacement() {
@@ -26,6 +34,7 @@ public final class ARViewModel: ObservableObject {
             placedEntity = nil
         }
         isPlaced = false
+        activeWorldAnchorCount = 0
         statusMessage = "تم مسح القطعة. وجه الكاميرا لتحديد سطح جديد"
         SpatialSoundHelper.shared.playSnapHaptic()
     }
