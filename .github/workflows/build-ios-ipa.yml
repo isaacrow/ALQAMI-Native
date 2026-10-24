@@ -53,18 +53,22 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" 2>&1 | tee xcodebuild.log
 
-      - name: Report and Commit Failure Log
+      - name: Report Build Errors
         if: failure()
         run: |
           cd ios
-          echo "=== XCODEBUILD COMPILATION ERRORS ==="
-          grep -C 3 "error:" xcodebuild.log || true
-          tail -n 120 xcodebuild.log > build_failure.log
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add build_failure.log
-          git commit -m "Capture build failure log [skip ci]" || true
-          git push origin main || true
+          echo "## ❌ Build Failure Log" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -B 2 -A 5 -E "(error:|fatal error:)" xcodebuild.log | head -n 60 >> $GITHUB_STEP_SUMMARY || true
+          tail -n 80 xcodebuild.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Build Log Artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-failure-log
+          path: ios/xcodebuild.log
 
       - name: Package IPA
         run: |
