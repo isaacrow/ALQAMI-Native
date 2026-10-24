@@ -57,6 +57,7 @@ public struct RealityKitARView: UIViewRepresentable {
         func setup(arView: ARView, viewModel: ARViewModel) {
             self.arView = arView
             self.viewModel = viewModel
+            viewModel.arView = arView
 
             // 1. Configure ARSession with Environmental HDR, Plane Detection & LiDAR MeshAnchor Reconstruction (Image 2)
             configureARSession(for: arView)

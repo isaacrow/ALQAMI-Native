@@ -1,10 +1,11 @@
 import SwiftUI
 import CoreMotion
 
-// MARK: - Complete visionOS Spatial OS Shell & Honeycomb Launcher (App.tsx + SpatialWindow.tsx + HomeViewLauncher.tsx)
+// MARK: - Complete visionOS Spatial OS Shell & Honeycomb Launcher with Apple Glossy Glass & Real Gyroscope Parallax
 public struct SpatialRootView: View {
     @StateObject private var catalogViewModel = CatalogViewModel()
     @ObservedObject private var lighting = LightingManager.shared
+    @ObservedObject private var hardware = RealHardwareMonitor.shared
 
     // Window & Navigation State
     @State private var selectedArtifactForDetail: Artifact? = nil
@@ -16,9 +17,9 @@ public struct SpatialRootView: View {
     @State private var showBentoRoom: Bool = false
     @State private var showDuoFoldShowcase: Bool = false
 
-    // 3D Room Parallax Camera State (Drag / Gyroscope Pan & Glide)
-    @State private var roomYaw: CGFloat = 0
-    @State private var roomPitch: CGFloat = 0
+    // 3D Room Parallax Camera State (Real Gyroscope + Touch Drag)
+    @State private var dragYaw: CGFloat = 0
+    @State private var dragPitch: CGFloat = 0
     @State private var windowOffset: CGSize = .zero
 
     public init() {}
@@ -26,19 +27,20 @@ public struct SpatialRootView: View {
     public var body: some View {
         GeometryReader { geo in
             ZStack {
-                // MARK: - 1. 3D Spatial Room Environment Backdrop (custom_room_bg.png + 6 Environments + Live Camera AR World)
+                // MARK: - 1. 3D Spatial Room Environment Backdrop (custom_room_bg.png + Real 60Hz Gyroscope Parallax + Camera AR World)
                 spatialRoomBackdrop(size: geo.size)
 
                 // MARK: - 2. Main Spatial Window OR Home Honeycomb Launcher
                 VStack(spacing: 0) {
                     // Top Quiet visionOS Shell Controls (Alqami Logo, Home Grid Button, Time + Control Center Pill, Spatial Mode Pill)
                     topQuietShellBar
-                        .padding(.horizontal, 20)
-                        .padding(.top, 8)
-                        .padding(.bottom, 8)
+                        .padding(.horizontal, 14)
+                        .padding(.top, 6)
+                        .padding(.bottom, 6)
 
                     if showHomeLauncher {
                         HomeHoneycombLauncherView(
+                            isArabic: catalogViewModel.isArabic,
                             onOpenApp: { appId in
                                 handleLaunchApp(appId)
                             }
@@ -60,8 +62,9 @@ public struct SpatialRootView: View {
                                 withAnimation(.spring()) { showDuoFoldShowcase = false }
                             }
                         )
+                        .padding(.horizontal, 10)
                     } else {
-                        // Floating Frosted Glass Window + Left Vertical Ornament + Bottom Grab Bar
+                        // Floating Apple Glossy Glass Window + Left/Bottom Ornament
                         spatialFloatingWindow(size: geo.size)
                             .offset(windowOffset)
                     }
@@ -70,11 +73,11 @@ public struct SpatialRootView: View {
 
                     // Bottom Window Grab Bar + Bottom-Right Creator Credit Pill
                     bottomWindowChromeAndCreatorCredit
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 8)
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 4)
                 }
 
-                // MARK: - 3. 3-Panel Control Center Overlay
+                // MARK: - 3. 3-Panel Control Center Overlay (Real Hardware Telemetry)
                 if showControlCenter {
                     ControlCenterView(
                         isArabic: catalogViewModel.isArabic,
@@ -104,7 +107,7 @@ public struct SpatialRootView: View {
                 activeARArtifact = nil
             }
         }
-        // ARKit 3D Object Scanner & Linked Data RDF Studio
+        // Real Vision + ARKit 3D Object & QR Scanner
         .fullScreenCover(isPresented: $showScanner) {
             CulturalVisionScannerView(
                 onSelectArtifact: { artifact in
@@ -130,14 +133,17 @@ public struct SpatialRootView: View {
         }
     }
 
-    // MARK: - 1. Spatial Room Backdrop (custom_room_bg.png + Environments + Camera Passthrough)
+    // MARK: - 1. Spatial Room Backdrop (custom_room_bg.png + Real CMMotionManager 60Hz Gyroscope Parallax)
     private func spatialRoomBackdrop(size: CGSize) -> some View {
-        ZStack {
+        let totalYaw = max(-45, min(45, dragYaw + hardware.deviceRoll * 26))
+        let totalPitch = max(-25, min(25, dragPitch + hardware.devicePitch * 18))
+
+        return ZStack {
             if lighting.isSpatialWorldAR {
-                // Live Camera Passthrough Backdrop
+                // Real Live Camera Passthrough Backdrop
                 CameraLivePreviewRepresentable()
                     .ignoresSafeArea()
-                Color.black.opacity(0.22)
+                Color.black.opacity(0.20)
                     .ignoresSafeArea()
             } else {
                 // Base Environment Gradient
@@ -148,23 +154,23 @@ public struct SpatialRootView: View {
                 )
                 .ignoresSafeArea()
 
-                // Real Room Background Image (custom_room_bg.png) when in Living Room environment
+                // Real Room Background Image (custom_room_bg.png) driven by Real Gyroscope + Touch Parallax
                 if lighting.environment == .livingRoom,
                    let roomImg = BundleImageLoader.uiImage(named: "custom_room_bg.png") {
                     Image(uiImage: roomImg)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: size.width * 1.16, height: size.height * 1.16)
-                        .offset(x: roomYaw, y: roomPitch)
+                        .frame(width: size.width * 1.18, height: size.height * 1.18)
+                        .offset(x: totalYaw, y: totalPitch)
                         .clipped()
                         .ignoresSafeArea()
                 }
 
-                // Ambient Vignette & Lighting Tint Overlay
+                // Ambient Vignette & Lighting Intensity Overlay
                 RadialGradient(
                     colors: [
-                        Color.black.opacity(0.18),
-                        Color.black.opacity(0.56)
+                        Color.black.opacity(0.14),
+                        Color.black.opacity(0.52)
                     ],
                     center: .center,
                     startRadius: 80,
@@ -176,22 +182,22 @@ public struct SpatialRootView: View {
         .gesture(
             DragGesture()
                 .onChanged { value in
-                    roomYaw = max(-45, min(45, value.translation.width * 0.18))
-                    roomPitch = max(-25, min(25, value.translation.height * 0.12))
+                    dragYaw = max(-40, min(40, value.translation.width * 0.18))
+                    dragPitch = max(-22, min(22, value.translation.height * 0.12))
                 }
                 .onEnded { _ in
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                        roomYaw = 0
-                        roomPitch = 0
+                        dragYaw = 0
+                        dragPitch = 0
                     }
                 }
         )
     }
 
-    // MARK: - 2. Top Quiet visionOS Shell Controls (screenshot-view1.png)
+    // MARK: - 2. Top Quiet visionOS Shell Controls (Apple Glossy Glass)
     private var topQuietShellBar: some View {
         HStack(spacing: 8) {
-            // 1. Round Alqami Logo Button (Toggles Spatial AR World Passthrough)
+            // 1. Round Glossy Alqami Logo Button (Toggles Live Camera Passthrough)
             Button(action: {
                 SpatialSoundHelper.shared.playSnapHaptic()
                 withAnimation(.spring()) {
@@ -199,47 +205,38 @@ public struct SpatialRootView: View {
                 }
             }) {
                 ZStack {
-                    Circle()
-                        .fill(lighting.isSpatialWorldAR
-                              ? Color(red: 1.0, green: 0.839, blue: 0.039)
-                              : Color.black.opacity(0.38))
-                        .frame(width: 34, height: 34)
-                        .overlay(Circle().stroke(Color.white.opacity(0.22), lineWidth: 1))
-
                     if let logo = BundleImageLoader.uiImage(named: "logo.png") {
                         Image(uiImage: logo)
                             .resizable()
                             .renderingMode(.template)
                             .foregroundColor(lighting.isSpatialWorldAR ? .black : .white)
                             .scaledToFit()
-                            .frame(width: 20, height: 20)
+                            .frame(width: 19, height: 19)
                     } else {
                         Text("ع")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(lighting.isSpatialWorldAR ? .black : .white)
                     }
                 }
+                .glossyCircle(size: 34, isSelected: lighting.isSpatialWorldAR)
             }
+            .buttonStyle(.plain)
 
-            // 2. Round Home View Grid Button (Opens 13-App Honeycomb Launcher)
+            // 2. Round Glossy Home View Grid Button (Opens Real Functional ALQAMI Spatial Launcher)
             Button(action: {
                 SpatialSoundHelper.shared.playSnapHaptic()
-                withAnimation(.spring(response: 0.38, dampingFraction: 0.8)) {
+                withAnimation(.spring(response: 0.36, dampingFraction: 0.8)) {
                     showHomeLauncher.toggle()
                 }
             }) {
                 Image(systemName: "square.grid.2x2")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.9))
-                    .frame(width: 34, height: 34)
-                    .background(
-                        Circle()
-                            .fill(showHomeLauncher ? Color.white.opacity(0.28) : Color.black.opacity(0.35))
-                    )
-                    .overlay(Circle().stroke(Color.white.opacity(0.20), lineWidth: 1))
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(showHomeLauncher ? .black : .white)
+                    .glossyCircle(size: 34, isSelected: showHomeLauncher)
             }
+            .buttonStyle(.plain)
 
-            // 3. Time + Chevron Pill (Opens 3-Panel Control Center)
+            // 3. Live Hardware Clock + Battery + Chevron Pill (Opens 3-Panel Control Center)
             Button(action: {
                 SpatialSoundHelper.shared.playSnapHaptic()
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
@@ -247,25 +244,25 @@ public struct SpatialRootView: View {
                 }
             }) {
                 HStack(spacing: 5) {
-                    Text(currentClockLabel())
-                        .font(.system(size: 11.5, weight: .semibold))
+                    Text(hardware.currentTimeString)
+                        .font(.system(size: 11, weight: .bold))
+                    Text("• \(hardware.batteryPercentage)%")
+                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 9, weight: .bold))
-                        .opacity(0.7)
+                        .font(.system(size: 8.5, weight: .bold))
+                        .opacity(0.75)
                 }
-                .foregroundColor(.white.opacity(0.92))
-                .padding(.horizontal, 12)
+                .foregroundColor(showControlCenter ? .black : .white)
+                .padding(.horizontal, 11)
                 .padding(.vertical, 7)
-                .background(
-                    Capsule()
-                        .fill(showControlCenter ? Color.white.opacity(0.26) : Color.black.opacity(0.35))
-                )
-                .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
+                .glossyPill(isSelected: showControlCenter)
             }
+            .buttonStyle(.plain)
 
             Spacer()
 
-            // 4. Right Mode Switcher Pill ("Spatial v" / Duo-Fold / Scanner / AR)
+            // 4. Right Mode Switcher Glossy Pill ("Spatial v" / Duo-Fold / Scanner / AR)
             Menu {
                 Button(action: {
                     showHomeLauncher = false
@@ -282,12 +279,12 @@ public struct SpatialRootView: View {
                 Button(action: {
                     withAnimation(.spring()) { showDuoFoldShowcase = true }
                 }) {
-                    Label("Duo-Fold 3D Showcase • العرض المزدوج", systemImage: "book.pages")
+                    Label("Duo-Fold 3D Showcase • العرض المطوي", systemImage: "book.pages")
                 }
                 Button(action: {
                     showScanner = true
                 }) {
-                    Label("ARKit 3D Scanner & RDF • الماسح الدلالي", systemImage: "qrcode.viewfinder")
+                    Label("Vision & QR Scanner • الماسح البصري", systemImage: "qrcode.viewfinder")
                 }
                 Button(action: {
                     showBentoRoom = true
@@ -303,36 +300,30 @@ public struct SpatialRootView: View {
             } label: {
                 HStack(spacing: 5) {
                     Text("Spatial")
-                        .font(.system(size: 11.5, weight: .semibold))
+                        .font(.system(size: 11, weight: .bold))
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 9, weight: .bold))
-                        .opacity(0.7)
+                        .font(.system(size: 8.5, weight: .bold))
+                        .opacity(0.75)
                 }
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(.white)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(Capsule().fill(Color.black.opacity(0.35)))
-                .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
+                .glossyPill()
             }
         }
         .environment(\.layoutDirection, .leftToRight)
     }
 
-    // MARK: - 3. Floating Frosted Glass Window + Left Vertical Ornament (SpatialWindow.tsx)
+    // MARK: - 3. Floating Apple Glossy Glass Window + Left/Bottom Ornament
     private func spatialFloatingWindow(size: CGSize) -> some View {
         let isWide = size.width > 640
-        return HStack(spacing: 12) {
-            // Left Vertical Floating Glass Ornament (5 Icons: Grid, Search, User, Favorites with #FFD60A dot, Bag)
+        return HStack(spacing: 10) {
             if isWide {
                 leftVerticalOrnamentPill
             }
 
-            // Main Frosted Glass Window Container
+            // Main Apple Glossy Glass Window Container
             ZStack {
-                RoundedRectangle(cornerRadius: 34)
-                    .fill(Color(red: 0.11, green: 0.12, blue: 0.14).opacity(0.76))
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 34))
-
                 if let detailArtifact = selectedArtifactForDetail {
                     ArtifactDetailView(
                         artifact: detailArtifact,
@@ -350,7 +341,7 @@ public struct SpatialRootView: View {
                             activeARArtifact = art
                         }
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 34))
+                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
                 } else {
                     CatalogHomeView(
                         viewModel: catalogViewModel,
@@ -364,62 +355,48 @@ public struct SpatialRootView: View {
                             activeARArtifact = artifact
                         }
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 34))
+                    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
                     .environment(\.layoutDirection, catalogViewModel.isArabic ? .rightToLeft : .leftToRight)
                 }
             }
-            .overlay(
-                RoundedRectangle(cornerRadius: 34)
-                    .stroke(Color.white.opacity(0.22), lineWidth: 1)
-            )
-            .shadow(color: Color.black.opacity(0.48), radius: 28, x: 0, y: 16)
+            .glossyGlass(cornerRadius: 28, tintOpacity: 0.22)
         }
-        .padding(.horizontal, isWide ? 18 : 10)
+        .padding(.horizontal, isWide ? 16 : 8)
         .overlay(alignment: .bottom) {
             if !isWide {
                 compactBottomOrnamentPill
-                    .offset(y: -12)
+                    .padding(.bottom, 8)
             }
         }
         .environment(\.layoutDirection, .leftToRight)
     }
 
-    // MARK: - Left Vertical Ornament Pill (5 Buttons from AlqamiSpatialApp.tsx)
+    // MARK: - Left Vertical Ornament Pill (Apple Glossy Glass)
     private var leftVerticalOrnamentPill: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             ornamentIconButton(tab: .catalog, icon: "square.grid.2x2", badgeDot: false)
             ornamentIconButton(tab: .search, icon: "magnifyingglass", badgeDot: false)
             ornamentIconButton(tab: .about, icon: "person", badgeDot: false)
             ornamentIconButton(tab: .favorites, icon: "heart", badgeDot: !catalogViewModel.favoriteIds.isEmpty)
             ornamentIconButton(tab: .bag, icon: "bag", badgeDot: false)
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 8)
-        .background(
-            Capsule()
-                .fill(Color.black.opacity(0.38))
-                .background(.ultraThinMaterial, in: Capsule())
-        )
-        .overlay(Capsule().stroke(Color.white.opacity(0.20), lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.35), radius: 14, x: 0, y: 8)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 7)
+        .glossyGlass(cornerRadius: 26, tintOpacity: 0.25)
     }
 
+    // MARK: - Compact Bottom Ornament Pill for iPhone (Apple Glossy Glass)
     private var compactBottomOrnamentPill: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             ornamentIconButton(tab: .catalog, icon: "square.grid.2x2", badgeDot: false)
             ornamentIconButton(tab: .search, icon: "magnifyingglass", badgeDot: false)
             ornamentIconButton(tab: .about, icon: "person", badgeDot: false)
             ornamentIconButton(tab: .favorites, icon: "heart", badgeDot: !catalogViewModel.favoriteIds.isEmpty)
             ornamentIconButton(tab: .bag, icon: "bag", badgeDot: false)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .background(
-            Capsule()
-                .fill(Color.black.opacity(0.65))
-                .background(.ultraThinMaterial, in: Capsule())
-        )
-        .overlay(Capsule().stroke(Color.white.opacity(0.22), lineWidth: 1))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .glossyPill()
     }
 
     private func ornamentIconButton(tab: CatalogHomeView.OrnamentTab, icon: String, badgeDot: Bool) -> some View {
@@ -433,19 +410,15 @@ public struct SpatialRootView: View {
         }) {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: icon)
-                    .font(.system(size: 15, weight: isSelected ? .bold : .medium))
-                    .foregroundColor(isSelected ? .white : .white.opacity(0.62))
-                    .frame(width: 38, height: 38)
-                    .background(
-                        Circle()
-                            .fill(isSelected ? Color.white.opacity(0.22) : Color.clear)
-                    )
+                    .font(.system(size: 13.5, weight: isSelected ? .bold : .semibold))
+                    .foregroundColor(isSelected ? .black : .white)
+                    .glossyCircle(size: 34, isSelected: isSelected)
 
                 if badgeDot {
                     Circle()
-                        .fill(Color(red: 1.0, green: 0.839, blue: 0.039)) // #FFD60A
+                        .fill(Color(red: 1.0, green: 0.839, blue: 0.039))
                         .frame(width: 7, height: 7)
-                        .offset(x: -5, y: 5)
+                        .offset(x: -3, y: 3)
                 }
             }
         }
@@ -454,14 +427,12 @@ public struct SpatialRootView: View {
 
     // MARK: - 4. Bottom visionOS Window Grab Bar + Creator Credit Pill
     private var bottomWindowChromeAndCreatorCredit: some View {
-        HStack {
-            Spacer()
-
+        HStack(spacing: 10) {
             // Center visionOS Window Close Dot + Grab Bar Handle
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Circle()
-                    .fill(Color.white.opacity(0.38))
-                    .frame(width: 9, height: 9)
+                    .fill(Color.white.opacity(0.45))
+                    .frame(width: 8, height: 8)
                     .onTapGesture {
                         SpatialSoundHelper.shared.playSnapHaptic()
                         withAnimation(.spring()) {
@@ -471,8 +442,8 @@ public struct SpatialRootView: View {
                     }
 
                 Capsule()
-                    .fill(Color.white.opacity(0.45))
-                    .frame(width: 120, height: 5)
+                    .fill(Color.white.opacity(0.50))
+                    .frame(width: 96, height: 4.5)
                     .gesture(
                         DragGesture()
                             .onChanged { val in
@@ -491,25 +462,24 @@ public struct SpatialRootView: View {
 
             Spacer()
 
-            // Bottom-Right Subtle Creator Credit Pill ("designed & developed by isaac faleh · تصميم و تطوير اسحاق فالح")
+            // Bottom-Right Creator Credit Glossy Pill
             Button(action: {
                 SpatialSoundHelper.shared.playSnapHaptic()
                 selectedArtifactForDetail = nil
                 activeOrnamentTab = .about
             }) {
-                HStack(spacing: 6) {
+                HStack(spacing: 5) {
                     Circle()
                         .fill(Color(red: 1.0, green: 0.839, blue: 0.039))
-                        .frame(width: 6, height: 6)
-                    Text("designed & developed by isaac faleh · تصميم و تطوير اسحاق فالح")
-                        .font(.system(size: 9.5, weight: .medium))
-                        .foregroundColor(.white.opacity(0.75))
+                        .frame(width: 5.5, height: 5.5)
+                    Text("isaac faleh · اسحاق فالح")
+                        .font(.system(size: 9.5, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.88))
                         .lineLimit(1)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 5)
-                .background(Capsule().fill(Color.black.opacity(0.35)))
-                .overlay(Capsule().stroke(Color.white.opacity(0.14), lineWidth: 1))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4.5)
+                .glossyPill()
             }
             .buttonStyle(.plain)
         }
@@ -520,104 +490,109 @@ public struct SpatialRootView: View {
         SpatialSoundHelper.shared.playSnapHaptic()
         showHomeLauncher = false
         switch appId {
-        case "arkit-scanner":
-            showScanner = true
-        case "ar-anchors":
+        case "catalog":
+            selectedArtifactForDetail = nil
+            activeOrnamentTab = .catalog
+        case "ar-world":
             activeARArtifact = catalogViewModel.heroArtifact
-        case "studio", "quicklook":
-            showDuoFoldShowcase = true
-        case "photos":
+        case "vision-scanner":
+            showScanner = true
+        case "bento-room":
             showBentoRoom = true
+        case "duofold":
+            showDuoFoldShowcase = true
+        case "volume-popout":
+            selectedArtifactForDetail = nil
+            activeOrnamentTab = .catalog
+            catalogViewModel.isPopOut3D = true
+        case "live-3d":
+            selectedArtifactForDetail = nil
+            activeOrnamentTab = .catalog
+            catalogViewModel.live3DCatalog = true
+        case "voice-guide":
+            let hero = catalogViewModel.heroArtifact
+            selectedArtifactForDetail = hero
+            hardware.speakNarration("\(hero.title.ar). \(hero.description.ar)", isArabic: true)
+        case "favorites":
+            selectedArtifactForDetail = nil
+            activeOrnamentTab = .favorites
+        case "bag-vault":
+            selectedArtifactForDetail = nil
+            activeOrnamentTab = .bag
+        case "control-center":
+            showControlCenter = true
+        case "camera-passthrough":
+            lighting.isSpatialWorldAR.toggle()
         default:
             selectedArtifactForDetail = nil
             activeOrnamentTab = .catalog
         }
     }
-
-    private func currentClockLabel() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        return formatter.string(from: Date())
-    }
 }
 
-// MARK: - 13-App Honeycomb Spatial Launcher (Exact 1:1 HomeViewLauncher.tsx)
+// MARK: - 12 Real Functional ALQAMI Spatial Modules Launcher (Apple Glossy Glass, Zero Fake Apps)
 public struct HomeHoneycombLauncherView: View {
+    public var isArabic: Bool = true
     public var onOpenApp: (String) -> Void
 
     private struct SpatialAppItem: Identifiable {
         let id: String
-        let name: String
-        let subtitle: String
+        let nameAr: String
+        let nameEn: String
+        let subtitleAr: String
+        let subtitleEn: String
         let icon: String
         let colors: [Color]
         let badge: String?
     }
 
-    private let row1: [SpatialAppItem] = [
-        SpatialAppItem(id: "tools100", name: "100 Tools Hub", subtitle: "Complete Spatial Suite", icon: "sparkles", colors: [.orange, .pink], badge: "100"),
-        SpatialAppItem(id: "siri", name: "Siri", subtitle: "Voice Assistant", icon: "mic.fill", colors: [.purple, .blue], badge: nil),
-        SpatialAppItem(id: "photos", name: "Photos & Memories", subtitle: "Spatial Gallery", icon: "photo.on.rectangle.angled", colors: [.pink, .yellow], badge: nil),
-        SpatialAppItem(id: "airdraw", name: "Air Canvas", subtitle: "3D Brush & Paint", icon: "paintbrush.pointed.fill", colors: [.pink, .indigo], badge: nil),
-        SpatialAppItem(id: "globe", name: "Planet Earth", subtitle: "Interactive 3D Globe", icon: "globe.americas.fill", colors: [.blue, .green], badge: nil)
-    ]
-
-    private let row2: [SpatialAppItem] = [
-        SpatialAppItem(id: "arkit-scanner", name: "ARKit 3D Scanner", subtitle: "Bounding Box & RDF", icon: "qrcode.viewfinder", colors: [.yellow, .orange], badge: "RDF"),
-        SpatialAppItem(id: "playground", name: "Image Playground", subtitle: "Generative Studio", icon: "wand.and.stars", colors: [.purple, .pink], badge: nil),
-        SpatialAppItem(id: "safari", name: "Safari", subtitle: "Spatial Web Browser", icon: "safari.fill", colors: [.cyan, .blue], badge: nil),
-        SpatialAppItem(id: "notes", name: "Notes", subtitle: "Spatial Workspace", icon: "note.text", colors: [.yellow, .orange], badge: nil),
-        SpatialAppItem(id: "alqami", name: "Alqami Heritage", subtitle: "3D Museum & AR", icon: "building.columns.fill", colors: [.indigo, .blue], badge: "3D"),
-        SpatialAppItem(id: "studio", name: "3D Studio & PBR", subtitle: "Duo-Fold Inspector", icon: "cube.transparent.fill", colors: [.purple, .indigo], badge: nil)
-    ]
-
-    private let row3: [SpatialAppItem] = [
-        SpatialAppItem(id: "spotlight", name: "Spotlight", subtitle: "Universal Search", icon: "magnifyingglass", colors: [.gray, .black], badge: nil),
-        SpatialAppItem(id: "messages", name: "Messages", subtitle: "Spatial Personas", icon: "message.fill", colors: [.green, .mint], badge: "4"),
-        SpatialAppItem(id: "ar-anchors", name: "AR Anchors", subtitle: "Room Raycast Pinning", icon: "arkit", colors: [.teal, .green], badge: nil),
-        SpatialAppItem(id: "mac-display", name: "Mac Virtual Display", subtitle: "4K Curved Monitor", icon: "desktopcomputer", colors: [.blue, .indigo], badge: nil),
-        SpatialAppItem(id: "quicklook", name: "Quick Look", subtitle: "USDZ / GLB Viewer", icon: "eye.fill", colors: [.orange, .brown], badge: nil)
+    private let apps: [SpatialAppItem] = [
+        SpatialAppItem(id: "catalog", nameAr: "معرض علقمي", nameEn: "Alqami Gallery", subtitleAr: "١١ مخطوطة وأثر 3D", subtitleEn: "11 Real USDZ Artifacts", icon: "building.columns.fill", colors: [Color(red: 0.11, green: 0.34, blue: 0.72), Color(red: 0.06, green: 0.20, blue: 0.47)], badge: "11"),
+        SpatialAppItem(id: "ar-world", nameAr: "الواقع المعزز AR", nameEn: "RealityKit AR", subtitleAr: "تثبيت Raycast في الغرفة", subtitleEn: "WorldAnchor & Mesh", icon: "arkit", colors: [Color(red: 0.95, green: 0.72, blue: 0.05), Color(red: 0.85, green: 0.48, blue: 0.02)], badge: "AR"),
+        SpatialAppItem(id: "vision-scanner", nameAr: "الماسح البصري", nameEn: "Vision Scanner", subtitleAr: "كاميرا QR و Vision AI", subtitleEn: "Real Camera & Barcode", icon: "qrcode.viewfinder", colors: [Color(red: 0.15, green: 0.68, blue: 0.52), Color(red: 0.08, green: 0.42, blue: 0.34)], badge: "LIVE"),
+        SpatialAppItem(id: "bento-room", nameAr: "الغرفة التفاعلية", nameEn: "Room 8-Hotspots", subtitleAr: "٨ نقاط مكانية في الغرفة", subtitleEn: "8 Spatial Room Pins", icon: "dot.scope", colors: [Color(red: 0.52, green: 0.28, blue: 0.85), Color(red: 0.32, green: 0.16, blue: 0.58)], badge: "8"),
+        SpatialAppItem(id: "duofold", nameAr: "العرض المطوي", nameEn: "Duo-Fold Book", subtitleAr: "تصفح ثلاثي الأبعاد", subtitleEn: "3D Hinged Manuscript", icon: "book.pages.fill", colors: [Color(red: 0.82, green: 0.32, blue: 0.48), Color(red: 0.52, green: 0.16, blue: 0.28)], badge: "3D"),
+        SpatialAppItem(id: "volume-popout", nameAr: "المجسم العائم", nameEn: "3D Volume Pop-Out", subtitleAr: "فحص النقوش والأختام", subtitleEn: "360° Callout Inspector", icon: "rotate.3d", colors: [Color(red: 0.18, green: 0.55, blue: 0.88), Color(red: 0.10, green: 0.32, blue: 0.62)], badge: nil),
+        SpatialAppItem(id: "live-3d", nameAr: "الكتالوج ثلاثي الأبعاد", nameEn: "Live 3D Grid", subtitleAr: "تدوير مباشر لكل البطاقات", subtitleEn: "Real-Time USDZ Cards", icon: "cube.transparent.fill", colors: [Color(red: 0.88, green: 0.52, blue: 0.15), Color(red: 0.62, green: 0.30, blue: 0.08)], badge: "USDZ"),
+        SpatialAppItem(id: "voice-guide", nameAr: "المرشد الصوتي", nameEn: "Audio Guide", subtitleAr: "نطق عربي وإنجليزي حي", subtitleEn: "Real AVSpeech Narration", icon: "waveform.circle.fill", colors: [Color(red: 0.22, green: 0.64, blue: 0.78), Color(red: 0.12, green: 0.38, blue: 0.52)], badge: "TTS"),
+        SpatialAppItem(id: "camera-passthrough", nameAr: "الكاميرا المكانية", nameEn: "Camera Backdrop", subtitleAr: "دمج النافذة مع غرفتك", subtitleEn: "Live Camera Passthrough", icon: "camera.aperture", colors: [Color(red: 0.35, green: 0.72, blue: 0.38), Color(red: 0.18, green: 0.45, blue: 0.22)], badge: nil),
+        SpatialAppItem(id: "favorites", nameAr: "المفضلة", nameEn: "Saved Favorites", subtitleAr: "مقتنياتك المختارة", subtitleEn: "Persisted Collection", icon: "heart.fill", colors: [Color(red: 0.88, green: 0.24, blue: 0.36), Color(red: 0.58, green: 0.12, blue: 0.22)], badge: nil),
+        SpatialAppItem(id: "bag-vault", nameAr: "خزانة المقتنيات", nameEn: "Exhibition Vault", subtitleAr: "الأبعاد والأكواد المتحفية", subtitleEn: "Museum Archive Specs", icon: "bag.fill", colors: [Color(red: 0.48, green: 0.42, blue: 0.35), Color(red: 0.28, green: 0.24, blue: 0.20)], badge: nil),
+        SpatialAppItem(id: "control-center", nameAr: "مركز التحكم", nameEn: "Control Center", subtitleAr: "حالة البطارية والإضاءة", subtitleEn: "Real Hardware & Studio", icon: "slider.horizontal.3", colors: [Color(red: 0.32, green: 0.38, blue: 0.48), Color(red: 0.18, green: 0.22, blue: 0.30)], badge: nil)
     ]
 
     public var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 24) {
-                Text("visionOS Spatial Home • القائمة الرئيسية")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.75))
-                    .padding(.top, 8)
+        GeometryReader { geo in
+            let isWide = geo.size.width > 640
+            let cols = isWide
+                ? Array(repeating: GridItem(.flexible(), spacing: 16), count: 4)
+                : Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
 
-                // Row 1
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 22) {
-                        ForEach(row1) { app in
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 18) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+                        Text(isArabic ? "تطبيقات منصة علقمي المكانية • ALQAMI Spatial Suite" : "ALQAMI Spatial Suite • Real Native Modules")
+                            .font(.system(size: 13.5, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .glossyPill()
+                    .padding(.top, 6)
+
+                    LazyVGrid(columns: cols, spacing: 14) {
+                        ForEach(apps) { app in
                             honeycombAppIcon(app)
                         }
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, isWide ? 24 : 12)
                 }
-
-                // Row 2 (Staggered Center Row)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 22) {
-                        ForEach(row2) { app in
-                            honeycombAppIcon(app)
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                }
-
-                // Row 3
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 22) {
-                        ForEach(row3) { app in
-                            honeycombAppIcon(app)
-                        }
-                    }
-                    .padding(.horizontal, 24)
-                }
+                .padding(.vertical, 14)
             }
-            .padding(.vertical, 20)
+            .glossyGlass(cornerRadius: 28, tintOpacity: 0.20)
+            .padding(.horizontal, isWide ? 16 : 8)
         }
     }
 
@@ -625,7 +600,7 @@ public struct HomeHoneycombLauncherView: View {
         Button(action: {
             onOpenApp(app.id)
         }) {
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 ZStack(alignment: .topTrailing) {
                     Circle()
                         .fill(
@@ -635,43 +610,66 @@ public struct HomeHoneycombLauncherView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 72, height: 72)
-                        .overlay(Circle().stroke(Color.white.opacity(0.35), lineWidth: 1.5))
-                        .shadow(color: Color.black.opacity(0.45), radius: 14, x: 0, y: 8)
+                        .frame(width: 58, height: 58)
+                        .overlay(
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.white.opacity(0.45), Color.clear],
+                                        startPoint: .top,
+                                        endPoint: .center
+                                    )
+                                )
+                        )
+                        .overlay(
+                            Circle()
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [Color.white.opacity(0.8), Color.white.opacity(0.2)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.2
+                                )
+                        )
+                        .shadow(color: Color.black.opacity(0.35), radius: 8, x: 0, y: 5)
 
                     Image(systemName: app.icon)
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 23, weight: .bold))
                         .foregroundColor(.white)
-                        .frame(width: 72, height: 72)
+                        .frame(width: 58, height: 58)
 
                     if let badge = app.badge {
                         Text(badge)
-                            .font(.system(size: 9.5, weight: .black))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 6)
+                            .font(.system(size: 8.5, weight: .black))
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 5)
                             .padding(.vertical, 2)
-                            .background(Capsule().fill(Color.red))
+                            .background(Capsule().fill(Color(red: 1.0, green: 0.839, blue: 0.039)))
                             .offset(x: 4, y: -2)
                     }
                 }
 
-                Text(app.name)
-                    .font(.system(size: 12, weight: .semibold))
+                Text(isArabic ? app.nameAr : app.nameEn)
+                    .font(.system(size: 11.5, weight: .bold))
                     .foregroundColor(.white)
                     .lineLimit(1)
 
-                Text(app.subtitle)
-                    .font(.system(size: 9.5))
-                    .foregroundColor(.white.opacity(0.55))
+                Text(isArabic ? app.subtitleAr : app.subtitleEn)
+                    .font(.system(size: 9.5, weight: .medium))
+                    .foregroundColor(.white.opacity(0.62))
                     .lineLimit(1)
             }
-            .frame(width: 98)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 6)
+            .frame(maxWidth: .infinity)
+            .glossyGlass(cornerRadius: 20, tintOpacity: 0.14)
         }
         .buttonStyle(.plain)
     }
 }
 
-// MARK: - Duo-Fold 3D Mechanical Book/Door Carousel Showcase (AlqamiDuoFoldShowcase.tsx)
+// MARK: - Duo-Fold 3D Mechanical Book/Door Carousel Showcase (Apple Glossy Glass & Responsive Layout)
 public struct DuoFoldShowcaseModalView: View {
     public let artifacts: [Artifact]
     public let isArabic: Bool
@@ -684,135 +682,153 @@ public struct DuoFoldShowcaseModalView: View {
 
     public var body: some View {
         let current = artifacts[currentIndex % max(1, artifacts.count)]
-        ZStack {
-            RoundedRectangle(cornerRadius: 34)
-                .fill(Color(red: 0.08, green: 0.09, blue: 0.12).opacity(0.88))
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 34))
-
-            VStack(spacing: 16) {
+        GeometryReader { geo in
+            let isWide = geo.size.width > 620
+            VStack(spacing: 12) {
                 // Header
                 HStack {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         Image(systemName: "book.pages.fill")
                             .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
-                        Text("DUO-FOLD 3D SPATIAL SHOWCASE • العرض المطوي ثلاثي الأبعاد")
-                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        Text(isArabic ? "العرض المطوي ثلاثي الأبعاد • DUO-FOLD 3D" : "DUO-FOLD 3D SPATIAL SHOWCASE")
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.white)
+                            .lineLimit(1)
                     }
                     Spacer()
                     Button(action: onClose) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 12.5, weight: .bold))
                             .foregroundColor(.white)
-                            .frame(width: 32, height: 32)
-                            .background(Circle().fill(Color.white.opacity(0.12)))
+                            .glossyCircle(size: 32)
                     }
+                    .buttonStyle(.plain)
                 }
 
-                // 2-Leaf Hinged 3D Book Layout
-                HStack(spacing: 4) {
-                    // Left Leaf: 3D Interactive USDZ Turntable
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Color(red: 0.796, green: 0.788, blue: 0.773)) // #CBC9C5
-
-                        Artifact3DTurntableSceneView(
-                            artifact: current,
-                            autoRotate: true,
-                            allowsCameraControl: true,
-                            cameraDistance: 0.65
-                        )
+                if isWide {
+                    HStack(spacing: 10) {
+                        duoFold3DLeaf(current: current)
+                        duoFoldTextLeaf(current: current)
                     }
-                    .rotation3DEffect(.degrees(foldRotation), axis: (x: 0, y: 1, z: 0), anchor: .trailing)
-
-                    // Right Leaf: Manuscript Calligraphic Spec Leaf
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(current.itemCode)
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
-
-                        Text(current.title.text(isArabic: isArabic))
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
-
-                        Text(current.subtitle.text(isArabic: isArabic))
-                            .font(.system(size: 13))
-                            .foregroundColor(.white.opacity(0.65))
-
-                        Text(current.description.text(isArabic: isArabic))
-                            .font(.system(size: 13))
-                            .foregroundColor(.white.opacity(0.82))
-                            .lineLimit(4)
-
-                        Spacer()
-
-                        HStack(spacing: 10) {
-                            Button(action: { onLaunchAR(current) }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "arkit")
-                                    Text("معاينة في المكان (AR)")
-                                }
-                                .font(.system(size: 12.5, weight: .bold))
-                                .foregroundColor(.black)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 10)
-                                .background(Capsule().fill(Color(red: 1.0, green: 0.839, blue: 0.039)))
-                            }
-
-                            Button(action: { onSelectArtifact(current) }) {
-                                Text("التفاصيل الكاملة")
-                                    .font(.system(size: 12.5, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                    .background(Capsule().fill(Color.white.opacity(0.12)))
-                            }
-                        }
+                } else {
+                    VStack(spacing: 10) {
+                        duoFold3DLeaf(current: current)
+                            .frame(height: 210)
+                        duoFoldTextLeaf(current: current)
                     }
-                    .padding(22)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 24).fill(Color.white.opacity(0.06)))
-                    .rotation3DEffect(.degrees(-foldRotation), axis: (x: 0, y: 1, z: 0), anchor: .leading)
                 }
 
                 // Bottom Prev/Next Controls
-                HStack(spacing: 16) {
+                HStack(spacing: 14) {
                     Button(action: { flipPage(delta: -1) }) {
-                        Label("السابق", systemImage: "chevron.left")
-                            .font(.system(size: 12.5, weight: .bold))
+                        Label(isArabic ? "السابق" : "Prev", systemImage: "chevron.left")
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, 14)
                             .padding(.vertical, 8)
-                            .background(Capsule().fill(Color.white.opacity(0.12)))
+                            .glossyPill()
                     }
+                    .buttonStyle(.plain)
 
                     Text("\(currentIndex + 1) / \(artifacts.count)")
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.7))
+                        .foregroundColor(.white.opacity(0.8))
 
                     Button(action: { flipPage(delta: 1) }) {
-                        Label("التالي", systemImage: "chevron.right")
-                            .font(.system(size: 12.5, weight: .bold))
+                        Label(isArabic ? "التالي" : "Next", systemImage: "chevron.right")
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 16)
+                            .padding(.horizontal, 14)
                             .padding(.vertical, 8)
-                            .background(Capsule().fill(Color.white.opacity(0.12)))
+                            .glossyPill()
                     }
+                    .buttonStyle(.plain)
                 }
             }
-            .padding(22)
+            .padding(16)
+            .glossyGlass(cornerRadius: 28, tintOpacity: 0.26)
         }
-        .padding(.horizontal, 18)
+    }
+
+    private func duoFold3DLeaf(current: Artifact) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(red: 0.796, green: 0.788, blue: 0.773)) // #CBC9C5
+
+            Artifact3DTurntableSceneView(
+                artifact: current,
+                autoRotate: true,
+                allowsCameraControl: true,
+                cameraDistance: 0.65
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+        .rotation3DEffect(.degrees(foldRotation), axis: (x: 0, y: 1, z: 0), anchor: .trailing)
+    }
+
+    private func duoFoldTextLeaf(current: Artifact) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(current.itemCode)
+                .font(.system(size: 10.5, weight: .bold, design: .monospaced))
+                .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+
+            Text(current.title.text(isArabic: isArabic))
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .lineLimit(1)
+
+            Text(current.subtitle.text(isArabic: isArabic))
+                .font(.system(size: 12))
+                .foregroundColor(.white.opacity(0.68))
+                .lineLimit(1)
+
+            Text(current.description.text(isArabic: isArabic))
+                .font(.system(size: 12))
+                .foregroundColor(.white.opacity(0.85))
+                .lineLimit(3)
+
+            Spacer(minLength: 4)
+
+            HStack(spacing: 8) {
+                Button(action: { onLaunchAR(current) }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "arkit")
+                        Text(isArabic ? "معاينة في المكان (AR)" : "Place in AR")
+                    }
+                    .font(.system(size: 11.5, weight: .bold))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .glossyPill(isSelected: true)
+                }
+                .buttonStyle(.plain)
+
+                Button(action: { onSelectArtifact(current) }) {
+                    Text(isArabic ? "التفاصيل الكاملة" : "Full Details")
+                        .font(.system(size: 11.5, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .glossyPill()
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .glossyGlass(cornerRadius: 20, tintOpacity: 0.18)
+        .rotation3DEffect(.degrees(-foldRotation), axis: (x: 0, y: 1, z: 0), anchor: .leading)
     }
 
     private func flipPage(delta: Int) {
+        guard !artifacts.isEmpty else { return }
         SpatialSoundHelper.shared.playSnapHaptic()
-        withAnimation(.easeInOut(duration: 0.2)) {
-            foldRotation = 38
+        withAnimation(.easeInOut(duration: 0.18)) {
+            foldRotation = delta > 0 ? 35 : -35
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
             currentIndex = (currentIndex + delta + artifacts.count) % artifacts.count
-            withAnimation(.spring(response: 0.38, dampingFraction: 0.78)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
                 foldRotation = 0
             }
         }

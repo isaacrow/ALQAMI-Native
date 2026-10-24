@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Exact ALQAMI 6 Artifact Card View (Frosted Glass Outer + #CBC9C5 Warm Stone-Gray Inner Viewport)
+// MARK: - Exact ALQAMI 6 Artifact Card View (Apple Glossy Glass Outer + #CBC9C5 Warm Stone-Gray Inner Studio)
 public struct ArtifactCardView: View {
     public let artifact: Artifact
     public var isArabic: Bool = true
@@ -32,20 +32,20 @@ public struct ArtifactCardView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // 1. Warm Stone-Gray (#CBC9C5) Inner Studio Container (Exact ALQAMI 6 Card Viewport)
+        VStack(alignment: .leading, spacing: 8) {
+            // 1. Warm Stone-Gray (#CBC9C5) Inner Studio Container with Glossy Inner Bevel
             ZStack {
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(Color(red: 0.796, green: 0.788, blue: 0.773)) // #CBC9C5
 
-                // Subtle radial vignette matching the web card
+                // Subtle studio vignette + top glossy highlight
                 RadialGradient(
-                    colors: [Color.clear, Color.black.opacity(0.08)],
+                    colors: [Color.white.opacity(0.18), Color.black.opacity(0.08)],
                     center: .center,
-                    startRadius: 30,
-                    endRadius: 110
+                    startRadius: 20,
+                    endRadius: 95
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                 // Real High-Res Cutout Image OR Live 3D Model when live3D is enabled
                 if live3D {
@@ -53,41 +53,39 @@ public struct ArtifactCardView: View {
                         artifact: artifact,
                         autoRotate: true,
                         allowsCameraControl: true,
-                        cameraDistance: 0.78
+                        cameraDistance: 0.76
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 } else if let uiImage = BundleImageLoader.uiImage(named: artifact.imageName) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFit()
-                        .padding(14)
-                        .shadow(color: Color.black.opacity(0.28), radius: 10, x: 0, y: 6)
+                        .padding(12)
+                        .padding(.bottom, 16)
+                        .shadow(color: Color.black.opacity(0.26), radius: 8, x: 0, y: 5)
                 } else {
                     Artifact3DTurntableSceneView(
                         artifact: artifact,
                         autoRotate: true,
                         allowsCameraControl: false,
-                        cameraDistance: 0.78
+                        cameraDistance: 0.76
                     )
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
 
-                // Bottom Overlay Bar inside #CBC9C5 Box: Heart + 3D Box on Left, itemCode Pill on Right
+                // Bottom Overlay Bar inside #CBC9C5 Box: Glossy Heart + 3D Cube on Left, Glossy itemCode Pill on Right
                 VStack {
                     Spacer()
-                    HStack(spacing: 6) {
+                    HStack(spacing: 5) {
                         // Heart Favorite Button
                         Button(action: {
+                            SpatialSoundHelper.shared.playSnapHaptic()
                             onToggleFavorite()
                         }) {
                             Image(systemName: isFavorite ? "heart.fill" : "heart")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(isFavorite ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white)
-                                .frame(width: 28, height: 28)
-                                .background(
-                                    Circle()
-                                        .fill(isFavorite ? Color.black.opacity(0.65) : Color.black.opacity(0.32))
-                                )
+                                .font(.system(size: 11.5, weight: .bold))
+                                .foregroundColor(isFavorite ? .black : .white)
+                                .glossyCircle(size: 28, isSelected: isFavorite)
                         }
                         .buttonStyle(.plain)
 
@@ -97,53 +95,50 @@ public struct ArtifactCardView: View {
                             onPopOut3D()
                         }) {
                             Image(systemName: "cube")
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(.system(size: 11.5, weight: .bold))
                                 .foregroundColor(.white)
-                                .frame(width: 28, height: 28)
-                                .background(Circle().fill(Color.black.opacity(0.32)))
+                                .glossyCircle(size: 28, isSelected: false)
                         }
                         .buttonStyle(.plain)
 
-                        Spacer()
+                        Spacer(minLength: 2)
 
-                        // ItemCode Glass Pill (e.g. "1022 هـ / هـ", "HLM-OTT-15")
+                        // ItemCode Glossy Glass Pill (e.g. "1022 هـ", "HLM-OTT-15")
                         Text(artifact.itemCode)
                             .font(.system(size: 9.5, weight: .bold))
                             .foregroundColor(.white)
-                            .padding(.horizontal, 9)
+                            .lineLimit(1)
+                            .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Capsule().fill(Color.black.opacity(0.28)))
+                            .glossyPill()
                     }
-                    .padding(10)
+                    .padding(8)
+                    .environment(\.layoutDirection, .leftToRight)
                 }
             }
-            .frame(height: 175)
+            .frame(height: 148)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.white.opacity(0.28), lineWidth: 0.8)
+            )
 
-            // 2. Bilingual Titles Below the Stone-Gray Viewport
-            VStack(alignment: .leading, spacing: 3) {
+            // 2. Proportional Bilingual Titles Below the Stone-Gray Viewport
+            VStack(alignment: .leading, spacing: 2) {
                 Text(artifact.title.text(isArabic: isArabic))
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 13.5, weight: .bold))
                     .foregroundColor(.white)
                     .lineLimit(1)
 
                 Text(artifact.subtitle.text(isArabic: isArabic))
-                    .font(.system(size: 11, weight: .regular))
-                    .foregroundColor(.white.opacity(0.55))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.white.opacity(0.62))
                     .lineLimit(1)
             }
             .padding(.horizontal, 4)
-            .padding(.bottom, 4)
+            .padding(.bottom, 2)
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 26)
-                .fill(Color.white.opacity(0.08))
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 26))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 26)
-                .stroke(Color.white.opacity(0.14), lineWidth: 1)
-        )
+        .padding(9)
+        .glossyGlass(cornerRadius: 22, tintOpacity: 0.14)
         .contentShape(Rectangle())
         .onTapGesture {
             SpatialSoundHelper.shared.playSnapHaptic()

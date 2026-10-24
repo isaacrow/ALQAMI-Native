@@ -2,9 +2,10 @@ import SwiftUI
 import RealityKit
 import ARKit
 
-// MARK: - Exact ALQAMI 6 2D SwiftUI AR Overlay + Spatial Computing ECS Graph Inspector (Images 1, 2, 3, 4)
+// MARK: - Exact ALQAMI 6 2D SwiftUI AR Overlay + Spatial Computing ECS Graph Inspector with Apple Glossy Glass
 public struct ARControlOverlay: View {
     @ObservedObject var viewModel: ARViewModel
+    @ObservedObject private var hardware = RealHardwareMonitor.shared
     var onDismiss: () -> Void
 
     @State private var isArabic: Bool = true
@@ -25,36 +26,51 @@ public struct ARControlOverlay: View {
 
     public var body: some View {
         ZStack {
-            // MARK: - 1. Exact Top Dark Glass Header Bar (screenshot-ar-view.png)
-            VStack {
-                HStack(spacing: 12) {
-                    // Left Side: Language Toggle Pill ("English" / "عربي")
-                    Button(action: {
-                        SpatialSoundHelper.shared.playSnapHaptic()
-                        withAnimation { isArabic.toggle() }
-                    }) {
-                        Text(isArabic ? "English" : "عربي")
-                            .font(.system(size: 12.5, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.9))
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(Capsule().fill(Color.white.opacity(0.10)))
-                            .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
+            // MARK: - 1. Top Apple Glossy Glass Header Bar + Raycast Status Pill
+            VStack(spacing: 6) {
+                HStack(spacing: 10) {
+                    // Left Side: Language Toggle Pill ("English" / "عربي") + Real Voice Guide Toggle
+                    HStack(spacing: 6) {
+                        Button(action: {
+                            SpatialSoundHelper.shared.playSnapHaptic()
+                            withAnimation { isArabic.toggle() }
+                        }) {
+                            Text(isArabic ? "EN" : "عربي")
+                                .font(.system(size: 11.5, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 7)
+                                .glossyPill()
+                        }
+                        .buttonStyle(.plain)
+
+                        // Real AVSpeechSynthesizer Voice Narration in AR
+                        Button(action: {
+                            SpatialSoundHelper.shared.playSnapHaptic()
+                            let text = "\(viewModel.artifact.title.text(isArabic: isArabic)). \(viewModel.artifact.description.text(isArabic: isArabic))"
+                            hardware.speakNarration(text, isArabic: isArabic)
+                        }) {
+                            Image(systemName: hardware.isSpeaking ? "waveform" : "speaker.wave.2.fill")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(hardware.isSpeaking ? .black : .white)
+                                .glossyCircle(size: 32, isSelected: hardware.isSpeaking)
+                        }
+                        .buttonStyle(.plain)
                     }
 
-                    Spacer()
+                    Spacer(minLength: 4)
 
-                    // Right Side: Artifact Title + "متحف علقمي المكاني · Alqami Heritage" + Logo + Back (<) Button
-                    HStack(spacing: 12) {
-                        VStack(alignment: .trailing, spacing: 2) {
+                    // Right Side: Artifact Title + Subtitle + Logo + Glossy Back (<) Button
+                    HStack(spacing: 10) {
+                        VStack(alignment: .trailing, spacing: 1) {
                             Text(viewModel.artifact.title.text(isArabic: isArabic))
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 13.5, weight: .bold))
                                 .foregroundColor(.white)
                                 .lineLimit(1)
 
-                            Text(isArabic ? "متحف علقمي المكاني · Alqami Heritage" : "Alqami Spatial Museum · الواقع المعزز")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.white.opacity(0.65))
+                            Text(isArabic ? "متحف علقمي المكاني · ARKit" : "Alqami Spatial Museum · ARKit")
+                                .font(.system(size: 9.5, weight: .medium))
+                                .foregroundColor(.white.opacity(0.68))
                                 .lineLimit(1)
                         }
 
@@ -64,94 +80,84 @@ public struct ARControlOverlay: View {
                                 .renderingMode(.template)
                                 .foregroundColor(.white)
                                 .scaledToFit()
-                                .frame(width: 24, height: 24)
+                                .frame(width: 20, height: 20)
                         }
 
                         Button(action: {
                             SpatialSoundHelper.shared.playSnapHaptic()
+                            hardware.stopSpeaking()
                             onDismiss()
                         }) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 13.5, weight: .bold))
                                 .foregroundColor(.white)
-                                .frame(width: 36, height: 36)
-                                .background(Circle().fill(Color.white.opacity(0.10)))
-                                .overlay(Circle().stroke(Color.white.opacity(0.18), lineWidth: 1))
+                                .glossyCircle(size: 34)
                         }
+                        .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 12)
-                .background(
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(Color(red: 0.05, green: 0.06, blue: 0.09).opacity(0.82))
-                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                )
-                .shadow(color: Color.black.opacity(0.45), radius: 18, x: 0, y: 8)
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .glossyGlass(cornerRadius: 22, tintOpacity: 0.28)
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
                 .environment(\.layoutDirection, .leftToRight)
 
-                // Raycast CollisionCastHit & WorldAnchor Status Pill (Images 2, 3, 4)
-                HStack(spacing: 8) {
+                // Raycast CollisionCastHit & WorldAnchor Status Glossy Pill (Images 2, 3, 4)
+                HStack(spacing: 6) {
                     Circle()
                         .fill(viewModel.isPlaced ? Color.green : (viewModel.isSurfaceDetected ? Color(red: 1.0, green: 0.839, blue: 0.039) : Color.orange))
-                        .frame(width: 8, height: 8)
+                        .frame(width: 7.5, height: 7.5)
 
                     Text(viewModel.statusMessage)
-                        .font(.system(size: 11.5, weight: .semibold))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.white)
                         .lineLimit(1)
 
                     if viewModel.isPlaced {
                         Text("• \(Int(viewModel.scaleMultiplier * 100))%")
-                            .font(.system(size: 11.5, weight: .heavy, design: .monospaced))
+                            .font(.system(size: 11, weight: .heavy, design: .monospaced))
                             .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                     }
                 }
-                .padding(.horizontal, 14)
+                .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(Capsule().fill(Color.black.opacity(0.55)))
-                .overlay(Capsule().stroke(Color.white.opacity(0.16), lineWidth: 1))
-                .padding(.top, 6)
+                .glossyPill()
 
                 Spacer()
             }
 
-            // MARK: - 2. Exact Collapsible Floating Dark Glass HUD Card on Right (screenshot-ar-view.png + Spatial ECS Graph)
+            // MARK: - 2. Collapsible Floating Apple Glossy Glass HUD Card on Right
             VStack {
                 Spacer()
                 HStack {
                     Spacer()
                     collapsibleRightHUDCard
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 86)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 74)
                 .environment(\.layoutDirection, .leftToRight)
             }
 
-            // MARK: - 3. Bottom Spatial AR Controls Pill (Re-Anchor, 1:1 Scale, MeshAnchor Wireframe, USD Scene Inspector)
+            // MARK: - 3. Bottom Spatial AR Controls Glossy Pill (Re-Anchor, 1:1 Scale, AR Camera Snapshot, Mesh Wireframe, USD Scene Inspector)
             VStack {
                 Spacer()
-                HStack(spacing: 12) {
+                HStack(spacing: 9) {
                     // Re-anchor WorldAnchor on Raycast Plane
                     Button(action: {
                         viewModel.resetPlacement()
                     }) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 5) {
                             Image(systemName: "scope")
                             Text(isArabic ? "إعادة التثبيت" : "Re-Anchor")
                         }
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.system(size: 11.5, weight: .bold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 9)
-                        .background(Capsule().fill(Color.white.opacity(0.12)))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .glossyPill()
                     }
+                    .buttonStyle(.plain)
 
                     // 1:1 True Scale Button
                     Button(action: {
@@ -159,12 +165,24 @@ public struct ARControlOverlay: View {
                         SpatialSoundHelper.shared.playScaleTickHaptic()
                     }) {
                         Text("1:1")
-                            .font(.system(size: 12, weight: .black, design: .monospaced))
+                            .font(.system(size: 11.5, weight: .black, design: .monospaced))
                             .foregroundColor(.black)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 9)
-                            .background(Capsule().fill(Color(red: 1.0, green: 0.839, blue: 0.039)))
+                            .padding(.horizontal, 11)
+                            .padding(.vertical, 8)
+                            .glossyPill(isSelected: true)
                     }
+                    .buttonStyle(.plain)
+
+                    // Real AR Snapshot Camera Button (Saves ARView photo to iOS Photos)
+                    Button(action: {
+                        viewModel.captureARSnapshot()
+                    }) {
+                        Image(systemName: viewModel.snapshotSavedToast ? "checkmark" : "camera.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(viewModel.snapshotSavedToast ? .black : .white)
+                            .glossyCircle(size: 34, isSelected: viewModel.snapshotSavedToast)
+                    }
+                    .buttonStyle(.plain)
 
                     // Toggle MeshAnchor StaticMesh Wireframe (Image 2)
                     Button(action: {
@@ -172,11 +190,11 @@ public struct ARControlOverlay: View {
                         withAnimation { viewModel.showMeshWireframe.toggle() }
                     }) {
                         Image(systemName: "cube.transparent")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(viewModel.showMeshWireframe ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white)
-                            .frame(width: 36, height: 36)
-                            .background(Circle().fill(Color.white.opacity(0.12)))
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(viewModel.showMeshWireframe ? .black : .white)
+                            .glossyCircle(size: 34, isSelected: viewModel.showMeshWireframe)
                     }
+                    .buttonStyle(.plain)
 
                     // Universal Scene Description (.usda / Reality Composer Pro) Sheet Trigger
                     Button(action: {
@@ -184,11 +202,13 @@ public struct ARControlOverlay: View {
                         showUSDASheet = true
                     }) {
                         Text("USD")
-                            .font(.system(size: 10.5, weight: .black, design: .monospaced))
+                            .font(.system(size: 10, weight: .black, design: .monospaced))
                             .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
-                            .frame(width: 40, height: 36)
-                            .background(Capsule().fill(Color.white.opacity(0.12)))
+                            .padding(.horizontal, 9)
+                            .padding(.vertical, 8)
+                            .glossyPill()
                     }
+                    .buttonStyle(.plain)
 
                     // Show/Hide Metadata Card Toggle
                     Button(action: {
@@ -197,30 +217,28 @@ public struct ARControlOverlay: View {
                             isHUDCollapsed.toggle()
                         }
                     }) {
-                        Image(systemName: isHUDCollapsed ? "sidebar.right" : "chevron.down")
-                            .font(.system(size: 14, weight: .bold))
+                        Image(systemName: isHUDCollapsed ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 12.5, weight: .bold))
                             .foregroundColor(.white)
-                            .frame(width: 36, height: 36)
-                            .background(Circle().fill(Color.white.opacity(0.12)))
+                            .glossyCircle(size: 34)
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(Color(red: 0.05, green: 0.06, blue: 0.09).opacity(0.84))
-                        .background(.ultraThinMaterial, in: Capsule())
-                )
-                .overlay(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
-                .padding(.bottom, 18)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .glossyGlass(cornerRadius: 28, tintOpacity: 0.30)
+                .padding(.bottom, 12)
             }
+        }
+        .onDisappear {
+            hardware.stopSpeaking()
         }
         .sheet(isPresented: $showUSDASheet) {
             usdSceneDescriptionInspectorSheet
         }
     }
 
-    // MARK: - Collapsible Floating Dark Glass HUD Card (Exact screenshot-ar-view.png + Spatial ECS Graph Tab)
+    // MARK: - Collapsible Floating Apple Glossy Glass HUD Card
     private var collapsibleRightHUDCard: some View {
         let item = viewModel.artifact
         return VStack(spacing: 0) {
@@ -231,21 +249,22 @@ public struct ARControlOverlay: View {
                     isHUDCollapsed.toggle()
                 }
             }) {
-                VStack(spacing: 4) {
+                VStack(spacing: 3) {
                     Capsule()
-                        .fill(Color.white.opacity(0.32))
-                        .frame(width: 36, height: 4)
+                        .fill(Color.white.opacity(0.42))
+                        .frame(width: 34, height: 4)
                     Image(systemName: isHUDCollapsed ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.white.opacity(0.6))
+                        .font(.system(size: 10.5, weight: .bold))
+                        .foregroundColor(.white.opacity(0.65))
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.top, 10)
-                .padding(.bottom, 6)
+                .padding(.top, 8)
+                .padding(.bottom, 4)
             }
+            .buttonStyle(.plain)
 
             if !isHUDCollapsed {
-                // Tabs Header: "بيانات القطعة" | "الوصف التاريخي" | "ECS & Raycast"
+                // Tabs Header: "Spatial ECS" | "الوصف التاريخي" | "بيانات القطعة"
                 HStack(spacing: 0) {
                     hudTabButton(
                         tab: .spatialGraph,
@@ -260,15 +279,15 @@ public struct ARControlOverlay: View {
                         title: isArabic ? "بيانات القطعة" : "Metadata"
                     )
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 10)
 
-                Divider().background(Color.white.opacity(0.12))
+                Divider().background(Color.white.opacity(0.15))
 
                 // Tab Body
                 switch activeHUDTab {
                 case .metadata:
-                    VStack(spacing: 8) {
-                        HStack(spacing: 8) {
+                    VStack(spacing: 7) {
+                        HStack(spacing: 7) {
                             metadataBox(
                                 label: isArabic ? "الحقبة / التاريخ" : "Period / Date",
                                 value: item.period.text(isArabic: isArabic)
@@ -279,7 +298,7 @@ public struct ARControlOverlay: View {
                             )
                         }
 
-                        HStack(spacing: 8) {
+                        HStack(spacing: 7) {
                             metadataBox(
                                 label: isArabic ? "جهة الحفظ" : "Repository",
                                 value: item.institution.text(isArabic: isArabic)
@@ -295,116 +314,102 @@ public struct ARControlOverlay: View {
                             value: item.material.text(isArabic: isArabic)
                         )
                     }
-                    .padding(14)
+                    .padding(11)
                     .environment(\.layoutDirection, isArabic ? .rightToLeft : .leftToRight)
 
                 case .description:
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(item.description.text(isArabic: isArabic))
-                            .font(.system(size: 12.5))
-                            .foregroundColor(.white.opacity(0.88))
-                            .lineSpacing(4)
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.9))
+                            .lineSpacing(3)
 
                         Text(item.historicalContext.text(isArabic: isArabic))
-                            .font(.system(size: 11.5))
-                            .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.9))
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                             .lineSpacing(3)
                     }
-                    .padding(14)
+                    .padding(12)
                     .environment(\.layoutDirection, isArabic ? .rightToLeft : .leftToRight)
 
                 case .spatialGraph:
-                    // Live Visualization of Images 1, 2, 3, and 4 Architecture
                     spatialComputingECSGraphView
-                        .padding(12)
+                        .padding(11)
                 }
             }
         }
-        .frame(width: min(UIScreen.main.bounds.width - 32, 385))
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(Color(red: 0.05, green: 0.06, blue: 0.09).opacity(0.84))
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(Color.white.opacity(0.16), lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.5), radius: 22, x: 0, y: 12)
+        .frame(width: min(UIScreen.main.bounds.width - 24, 360))
+        .glossyGlass(cornerRadius: 22, tintOpacity: 0.30)
     }
 
     // MARK: - Live Spatial Computing ECS & Raycasting Diagram (Images 1, 2, 3, 4)
     private var spatialComputingECSGraphView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Row 1: Image 1 Hierarchy (ARView / RealityView -> Scene / Content -> AnchorEntity + EntityGesture)
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 5) {
                 ecsPill("RealityView / ARView", color: .blue)
-                Image(systemName: "arrow.right").font(.system(size: 9)).foregroundColor(.white.opacity(0.5))
+                Image(systemName: "arrow.right").font(.system(size: 8.5)).foregroundColor(.white.opacity(0.5))
                 ecsPill("Content / Scene", color: .gray)
-                Image(systemName: "arrow.right").font(.system(size: 9)).foregroundColor(.white.opacity(0.5))
+                Image(systemName: "arrow.right").font(.system(size: 8.5)).foregroundColor(.white.opacity(0.5))
                 ecsPill("EntityGesture", color: .blue)
             }
 
-            // Row 2: Image 2 (MeshAnchor -> .transform + generateStaticMesh() -> Entity[Transform + Collision])
-            HStack(spacing: 8) {
+            HStack(spacing: 7) {
                 ecsPill("MeshAnchor (\(viewModel.activeMeshAnchorCount))", color: .blue)
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 1) {
                     Text(".transform + generateStaticMesh()")
-                        .font(.system(size: 9, design: .monospaced))
+                        .font(.system(size: 8.5, design: .monospaced))
                         .foregroundColor(.cyan)
                     Text("→ Entity [Transform + Collision]")
-                        .font(.system(size: 9.5, weight: .bold, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.9))
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white)
                 }
                 Spacer()
             }
-            .padding(8)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.05)))
+            .padding(7)
+            .glossyGlass(cornerRadius: 10, tintOpacity: 0.14)
 
-            // Row 3: Image 3 (HandAnchor / Raycast -> CollisionCastHit + Normal)
-            HStack(spacing: 8) {
+            HStack(spacing: 7) {
                 ecsPill("CollisionCastHit", color: .green)
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 1) {
                     let n = viewModel.lastCollisionCastNormal
                     Text(String(format: "Normal: (%.2f, %.2f, %.2f)", n.x, n.y, n.z))
-                        .font(.system(size: 9, design: .monospaced))
+                        .font(.system(size: 8.5, design: .monospaced))
                         .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                     let p = viewModel.lastCollisionPosition
                     Text(String(format: "Hit Pos: (%.2f, %.2f, %.2f)m", p.x, p.y, p.z))
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.8))
+                        .font(.system(size: 8.5, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.85))
                 }
                 Spacer()
             }
-            .padding(8)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.05)))
+            .padding(7)
+            .glossyGlass(cornerRadius: 10, tintOpacity: 0.14)
 
-            // Row 4: Image 4 (WorldAnchor -> .transform -> Entity[Transform + Model(USDZ) + Collision])
-            HStack(spacing: 8) {
+            HStack(spacing: 7) {
                 ecsPill("WorldAnchor (\(viewModel.activeWorldAnchorCount))", color: .indigo)
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 1) {
                     Text("Entity [Transform + Model + Collision]")
-                        .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
                         .foregroundColor(.white)
                     Text("USDZ: \(viewModel.artifact.model.usdzFilename)")
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.65))
+                        .font(.system(size: 8.5, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.7))
                 }
                 Spacer()
             }
-            .padding(8)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.05)))
+            .padding(7)
+            .glossyGlass(cornerRadius: 10, tintOpacity: 0.14)
         }
         .environment(\.layoutDirection, .leftToRight)
     }
 
     private func ecsPill(_ text: String, color: Color) -> some View {
         Text(text)
-            .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+            .font(.system(size: 9, weight: .bold, design: .monospaced))
             .foregroundColor(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(RoundedRectangle(cornerRadius: 7).fill(color.opacity(0.85)))
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 6).fill(color.opacity(0.85)))
     }
 
     private func hudTabButton(tab: HUDTab, title: String) -> some View {
@@ -415,33 +420,33 @@ public struct ARControlOverlay: View {
                 activeHUDTab = tab
             }
         }) {
-            VStack(spacing: 7) {
+            VStack(spacing: 6) {
                 Text(title)
-                    .font(.system(size: 12, weight: isSelected ? .bold : .medium))
-                    .foregroundColor(isSelected ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white.opacity(0.6))
+                    .font(.system(size: 11.5, weight: isSelected ? .bold : .medium))
+                    .foregroundColor(isSelected ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white.opacity(0.65))
                 Rectangle()
                     .fill(isSelected ? Color(red: 1.0, green: 0.839, blue: 0.039) : Color.clear)
-                    .frame(height: 2.5)
+                    .frame(height: 2)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 4)
         }
+        .buttonStyle(.plain)
     }
 
     private func metadataBox(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(label)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.white.opacity(0.45))
+                .font(.system(size: 9.5, weight: .semibold))
+                .foregroundColor(.white.opacity(0.55))
             Text(value)
-                .font(.system(size: 11.5, weight: .semibold))
-                .foregroundColor(.white.opacity(0.92))
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(.white)
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.05)))
-        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.08), lineWidth: 1))
+        .padding(8)
+        .glossyGlass(cornerRadius: 11, tintOpacity: 0.12)
     }
 
     // MARK: - Universal Scene Description (.usda) & Reality Composer Pro Inspector Sheet
@@ -453,30 +458,32 @@ public struct ARControlOverlay: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Universal Scene Description (USD / Reality Composer Pro)")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 14.5, weight: .bold))
                             .foregroundColor(.white)
                         Text(viewModel.artifact.model.usdzFilename)
-                            .font(.system(size: 11.5, design: .monospaced))
+                            .font(.system(size: 11, design: .monospaced))
                             .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                     }
                     Spacer()
                     Button(action: { showUSDASheet = false }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.white.opacity(0.6))
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12.5, weight: .bold))
+                            .foregroundColor(.white)
+                            .glossyCircle(size: 32)
                     }
+                    .buttonStyle(.plain)
                 }
 
                 ScrollView {
                     Text(RealityComposerContentBundle.shared.generateUSDASceneDescription(for: viewModel.artifact))
-                        .font(.system(size: 11.5, design: .monospaced))
+                        .font(.system(size: 11, design: .monospaced))
                         .foregroundColor(Color(red: 0.55, green: 0.92, blue: 0.72))
                         .padding(14)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: 16).fill(Color.black.opacity(0.65)))
+                        .glossyGlass(cornerRadius: 16, tintOpacity: 0.35)
                 }
             }
-            .padding(20)
+            .padding(18)
         }
         .presentationDetents([.medium, .large])
     }

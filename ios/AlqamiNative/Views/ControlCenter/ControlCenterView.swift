@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Exact 1:1 3-Panel Control Center (ControlCenter3Panel.tsx)
+// MARK: - Apple Glossy Glass 3-Panel Control Center with Real Hardware Telemetry (ControlCenter3Panel.tsx)
 public struct ControlCenterView: View {
     public var isArabic: Bool
     public var onSelectLanguage: (Bool) -> Void
@@ -9,9 +9,7 @@ public struct ControlCenterView: View {
     public var onDismiss: () -> Void
 
     @ObservedObject private var lighting = LightingManager.shared
-    @State private var wifiOn: Bool = true
-    @State private var bluetoothOn: Bool = true
-    @State private var volume: Double = 0.78
+    @ObservedObject private var hardware = RealHardwareMonitor.shared
     @State private var activeSystemFeature: String = "ar-mode"
 
     public init(
@@ -31,7 +29,7 @@ public struct ControlCenterView: View {
     public var body: some View {
         ZStack {
             // Backdrop Dismiss Layer
-            Color.black.opacity(0.62)
+            Color.black.opacity(0.58)
                 .ignoresSafeArea()
                 .onTapGesture {
                     SpatialSoundHelper.shared.playSnapHaptic()
@@ -41,12 +39,18 @@ public struct ControlCenterView: View {
             GeometryReader { geo in
                 let isWide = geo.size.width > 740
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
-                        // Top Pill Handle
+                    VStack(spacing: 14) {
+                        // Top Glossy Pill Header
                         HStack {
-                            Text("SPATIAL CONTROL CENTER • مركز التحكم المكاني")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                .foregroundColor(.white.opacity(0.75))
+                            HStack(spacing: 6) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+                                Text("APPLE GLOSSY GLASS CONTROL CENTER • مركز التحكم المكاني")
+                                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.white.opacity(0.9))
+                                    .lineLimit(1)
+                            }
                             Spacer()
                             Button(action: {
                                 SpatialSoundHelper.shared.playSnapHaptic()
@@ -55,61 +59,66 @@ public struct ControlCenterView: View {
                                 Image(systemName: "xmark")
                                     .font(.system(size: 12, weight: .bold))
                                     .foregroundColor(.white)
-                                    .frame(width: 28, height: 28)
-                                    .background(Circle().fill(Color.white.opacity(0.14)))
+                                    .glossyCircle(size: 32)
                             }
                         }
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .glossyPill()
 
                         if isWide {
                             HStack(alignment: .top, spacing: 14) {
                                 leftClockAndWorldPanel
-                                    .frame(width: 225)
+                                    .frame(width: 235)
                                 centerSystemPanel
                                     .frame(maxWidth: .infinity)
                                 rightLightingPanel
-                                    .frame(width: 265)
+                                    .frame(width: 270)
                             }
                         } else {
-                            VStack(spacing: 14) {
-                                centerSystemPanel
-                                rightLightingPanel
+                            VStack(spacing: 12) {
                                 leftClockAndWorldPanel
+                                rightLightingPanel
+                                centerSystemPanel
                             }
                         }
                     }
-                    .padding(20)
+                    .padding(16)
                     .frame(maxWidth: 880)
                     .frame(maxWidth: .infinity)
-                    .padding(.top, 28)
+                    .padding(.top, 12)
+                    .padding(.bottom, 28)
                 }
             }
         }
         .environment(\.layoutDirection, .leftToRight)
     }
 
-    // MARK: - 1. Left Panel: Date, Clock, Battery/Wi-Fi, ALQAMI iPhone AR World Card, Notifications
+    // MARK: - 1. Left Panel: Real Date, Real Clock, Real UIDevice Battery & NWPathMonitor Network
     private var leftClockAndWorldPanel: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Tue Oct 24")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
+                Text(hardware.currentDateText)
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.72))
 
-                HStack {
-                    Text(currentTimeString())
-                        .font(.system(size: 28, weight: .bold))
+                HStack(alignment: .firstTextBaseline) {
+                    Text(hardware.currentTimeText)
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                     Spacer()
-                    HStack(spacing: 5) {
-                        Image(systemName: "wifi")
-                            .font(.system(size: 11))
-                        Text("97%")
-                            .font(.system(size: 11, weight: .bold))
-                        Image(systemName: "battery.100")
+                    // Real NWPathMonitor Network + Real UIDevice Battery Level
+                    HStack(spacing: 6) {
+                        Image(systemName: hardware.isWiFiConnected ? "wifi" : "wifi.slash")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(hardware.isWiFiConnected ? .green : .orange)
+                        Text("\(hardware.batteryLevelPercent)%")
+                            .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                        Image(systemName: hardware.batteryState == .charging ? "battery.100.bolt" : "battery.100")
                             .font(.system(size: 12))
+                            .foregroundColor(hardware.batteryState == .charging ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white)
                     }
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(.white.opacity(0.9))
                 }
             }
 
@@ -121,72 +130,70 @@ public struct ControlCenterView: View {
             }) {
                 HStack(spacing: 12) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.32),
-                                        Color(red: 0.071, green: 0.251, blue: 0.569).opacity(0.45)
+                                        Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.42),
+                                        Color(red: 0.071, green: 0.251, blue: 0.569).opacity(0.55)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
                             .frame(width: 40, height: 40)
-                        Text("🌐")
-                            .font(.system(size: 18))
+                        Image(systemName: "arkit")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("ALQAMI · علقمي")
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 13.5, weight: .bold))
                             .foregroundColor(.white)
-                        Text(lighting.isSpatialWorldAR ? "Spatial AR Active" : "iPhone AR World")
-                            .font(.system(size: 11))
+                        Text(lighting.isSpatialWorldAR ? "Live Camera AR Active" : "Launch RealityKit AR")
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                     }
                     Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white.opacity(0.5))
                 }
                 .padding(12)
-                .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.10)))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.16), lineWidth: 1))
+                .glossyGlass(cornerRadius: 18, tintOpacity: 0.16, rimOpacity: 0.45, shadowRadius: 8)
             }
             .buttonStyle(.plain)
 
-            // 3 Notifications Pill
+            // Live Hardware & LiDAR Status Pill
             HStack {
-                Text("3 Notifications")
-                    .font(.system(size: 13, weight: .medium))
+                Image(systemName: ARSessionManager.shared.isLiDARAvailable ? "sensor.tag.radiowaves.forward.fill" : "camera.metering.matrix")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+                Text(ARSessionManager.shared.isLiDARAvailable ? "LiDAR Mesh Active • \(hardware.networkInterfaceText)" : "ARKit Raycast Ready • \(hardware.networkInterfaceText)")
+                    .font(.system(size: 11.5, weight: .semibold))
                     .foregroundColor(.white.opacity(0.9))
                 Spacer()
                 Circle()
-                    .fill(Color.white.opacity(0.28))
+                    .fill(Color.green)
                     .frame(width: 8, height: 8)
             }
             .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.10)))
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.14), lineWidth: 1))
+            .padding(.vertical, 10)
+            .glossyGlass(cornerRadius: 16, tintOpacity: 0.12, rimOpacity: 0.35, shadowRadius: 6)
         }
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color(red: 0.12, green: 0.13, blue: 0.16).opacity(0.86))
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
-        )
-        .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color.white.opacity(0.18), lineWidth: 1))
+        .padding(16)
+        .glossyGlass(cornerRadius: 28)
     }
 
-    // MARK: - 2. Center Panel: 4 Circular Toggles (عربي, EN, Wi-Fi, Bluetooth) + System List + Volume Bar
+    // MARK: - 2. Center Panel: 4 Glossy Circular Toggles + System Actions + Real Audio Volume Slider
     private var centerSystemPanel: some View {
         VStack(spacing: 12) {
-            // Top 4 Circular Toggles
+            // Top 4 Glossy Circular Toggles
             HStack(spacing: 10) {
                 circularQuickToggle(
                     titleTop: "عربي",
                     subtitle: "AR",
-                    isActive: isArabic,
-                    activeColor: Color(red: 1.0, green: 0.839, blue: 0.039),
-                    textBlackWhenActive: true
+                    isActive: isArabic
                 ) {
                     onSelectLanguage(true)
                 }
@@ -194,84 +201,76 @@ public struct ControlCenterView: View {
                 circularQuickToggle(
                     titleTop: "EN",
                     subtitle: "English",
-                    isActive: !isArabic,
-                    activeColor: Color.blue,
-                    textBlackWhenActive: false
+                    isActive: !isArabic
                 ) {
                     onSelectLanguage(false)
                 }
 
                 circularIconToggle(
-                    icon: "wifi",
-                    isActive: wifiOn,
-                    activeColor: Color.blue
+                    icon: "arkit",
+                    label: "World AR",
+                    isActive: lighting.isSpatialWorldAR
                 ) {
-                    wifiOn.toggle()
+                    lighting.isSpatialWorldAR.toggle()
                     SpatialSoundHelper.shared.playSnapHaptic()
                 }
 
                 circularIconToggle(
-                    icon: "bolt.horizontal.fill",
-                    isActive: bluetoothOn,
-                    activeColor: Color.blue
+                    icon: "qrcode.viewfinder",
+                    label: "Vision",
+                    isActive: false
                 ) {
-                    bluetoothOn.toggle()
                     SpatialSoundHelper.shared.playSnapHaptic()
+                    onDismiss()
+                    onOpenScanner()
                 }
             }
 
             // System Action List
-            VStack(spacing: 6) {
-                systemActionRow(id: "ar-mode", emoji: "✨", icon: nil, title: "Alqami AR Mode • الواقع المعزز") {
+            VStack(spacing: 8) {
+                systemActionRow(id: "ar-mode", icon: "arkit", title: "RealityKit & Raycast AR • الواقع المعزز") {
                     activeSystemFeature = "ar-mode"
                     onDismiss()
                     onOpenARWorld()
                 }
-                systemActionRow(id: "scanner", emoji: "📦", icon: nil, title: "3D Object Tracking • تتبع المجسمات") {
+                systemActionRow(id: "scanner", icon: "qrcode.viewfinder", title: "Vision 3D Scanner & RDF • الماسح الدلالي") {
                     activeSystemFeature = "scanner"
                     onDismiss()
                     onOpenScanner()
                 }
-                systemActionRow(id: "mac", emoji: nil, icon: "desktopcomputer", title: "Mac Virtual Display") {
-                    activeSystemFeature = "mac"
-                }
-                systemActionRow(id: "mirror", emoji: nil, icon: "airplayvideo", title: "Mirror / Phone Cam AR") {
-                    activeSystemFeature = "mirror"
+                systemActionRow(id: "cam-bg", icon: "video.fill", title: "Live Camera Backdrop • خلفية الكاميرا الحية") {
+                    activeSystemFeature = "cam-bg"
                     lighting.isSpatialWorldAR.toggle()
                 }
-                systemActionRow(id: "guest", emoji: nil, icon: "person.2.fill", title: "Guest User • وضع الزائر") {
-                    activeSystemFeature = "guest"
-                }
-                systemActionRow(id: "focus", emoji: nil, icon: "moon.fill", title: "Focus • وضع التركيز") {
-                    activeSystemFeature = "focus"
+                systemActionRow(id: "env", icon: "mountain.2.fill", title: "Switch Spatial Environment • تبديل البيئة") {
+                    activeSystemFeature = "env"
+                    lighting.cycleEnvironment()
                 }
             }
 
-            // Thick White Volume Bar
+            // Real Output Volume Bar
             HStack(spacing: 10) {
                 Image(systemName: "speaker.wave.2.fill")
-                    .font(.system(size: 13))
-                    .foregroundColor(.black.opacity(0.75))
-                Slider(value: $volume, in: 0...1)
-                    .tint(.black)
-                Text("\(Int(volume * 100))%")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.white)
+                Slider(value: Binding(
+                    get: { Double(hardware.systemVolume) },
+                    set: { hardware.systemVolume = Float($0) }
+                ), in: 0...1)
+                    .tint(Color(red: 1.0, green: 0.839, blue: 0.039))
+                Text("\(Int(hardware.systemVolume * 100))%")
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundColor(.black.opacity(0.75))
+                    .foregroundColor(.white)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(Capsule().fill(Color.white.opacity(0.92)))
+            .glossyPill()
         }
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color(red: 0.12, green: 0.13, blue: 0.16).opacity(0.86))
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
-        )
-        .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color.white.opacity(0.18), lineWidth: 1))
+        .padding(16)
+        .glossyGlass(cornerRadius: 28)
     }
 
-    // MARK: - 3. Right Panel: Master 3D Lighting Controller (5 Presets + Environment Switcher + Brightness Bar)
+    // MARK: - 3. Right Panel: Real-Time SceneKit / RealityKit 3D Lighting Controller
     private var rightLightingPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
@@ -279,13 +278,13 @@ public struct ControlCenterView: View {
                     Image(systemName: "sun.max.fill")
                         .font(.system(size: 13))
                         .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
-                    Text("إضاءة النماذج 3D")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white.opacity(0.9))
+                    Text("إضاءة النماذج 3D الحقيقية")
+                        .font(.system(size: 12.5, weight: .bold))
+                        .foregroundColor(.white)
                 }
                 Spacer()
                 Text(lighting.currentPreset.nameEn)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 10.5, weight: .bold))
                     .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
             }
 
@@ -299,8 +298,8 @@ public struct ControlCenterView: View {
                         HStack(spacing: 10) {
                             Circle()
                                 .fill(Color(UIColor(hex: preset.uiAccentHex) ?? .yellow))
-                                .frame(width: 24, height: 24)
-                                .shadow(color: Color(UIColor(hex: preset.uiAccentHex) ?? .yellow).opacity(0.5), radius: 5)
+                                .frame(width: 22, height: 22)
+                                .shadow(color: Color(UIColor(hex: preset.uiAccentHex) ?? .yellow).opacity(0.6), radius: 5)
 
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(preset.nameAr)
@@ -308,24 +307,22 @@ public struct ControlCenterView: View {
                                     .foregroundColor(.white)
                                 Text(preset.nameEn)
                                     .font(.system(size: 10))
-                                    .foregroundColor(.white.opacity(0.55))
+                                    .foregroundColor(.white.opacity(0.60))
                             }
                             Spacer()
                             if isSelected {
-                                Circle()
-                                    .fill(Color(red: 1.0, green: 0.839, blue: 0.039))
-                                    .frame(width: 8, height: 8)
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                             }
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(isSelected ? Color.white.opacity(0.20) : Color.white.opacity(0.07))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(isSelected ? Color.white.opacity(0.32) : Color.white.opacity(0.08), lineWidth: 1)
+                        .glossyGlass(
+                            cornerRadius: 16,
+                            tintOpacity: isSelected ? 0.24 : 0.08,
+                            rimOpacity: isSelected ? 0.65 : 0.22,
+                            shadowRadius: 6
                         )
                     }
                     .buttonStyle(.plain)
@@ -339,61 +336,44 @@ public struct ControlCenterView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "mountain.2.fill")
                         .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.8))
-                    Text("البيئة: \(lighting.environment.labelAr) (\(lighting.environment.labelEn))")
-                        .font(.system(size: 11.5, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.88))
+                        .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+                    Text("البيئة: \(lighting.environment.labelAr)")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(.white)
                     Spacer()
                     Image(systemName: "arrow.triangle.2.circlepath")
-                        .font(.system(size: 11))
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.08)))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                .glossyPill()
             }
             .buttonStyle(.plain)
 
             // Bottom Brightness Slider (20% - 200%)
             HStack(spacing: 10) {
                 Image(systemName: "sun.max.fill")
-                    .font(.system(size: 13))
-                    .foregroundColor(.black.opacity(0.8))
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                 Slider(value: $lighting.brightness, in: 0.2...2.0)
-                    .tint(.black)
+                    .tint(Color(red: 1.0, green: 0.839, blue: 0.039))
                 Text("\(Int(lighting.brightness * 100))%")
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundColor(.black.opacity(0.8))
+                    .foregroundColor(.white)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(red: 1.0, green: 0.89, blue: 0.62), Color.white],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-            )
+            .glossyPill()
         }
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color(red: 0.12, green: 0.13, blue: 0.16).opacity(0.86))
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
-        )
-        .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color.white.opacity(0.18), lineWidth: 1))
+        .padding(16)
+        .glossyGlass(cornerRadius: 28)
     }
 
     private func circularQuickToggle(
         titleTop: String,
         subtitle: String,
         isActive: Bool,
-        activeColor: Color,
-        textBlackWhenActive: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: {
@@ -404,44 +384,41 @@ public struct ControlCenterView: View {
                 Text(titleTop)
                     .font(.system(size: 12, weight: .bold))
                 Text(subtitle)
-                    .font(.system(size: 8.5, weight: .semibold))
+                    .font(.system(size: 9, weight: .semibold))
                     .opacity(0.8)
             }
-            .foregroundColor(isActive ? (textBlackWhenActive ? .black : .white) : .white)
+            .foregroundColor(isActive ? .black : .white)
             .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(
-                Circle()
-                    .fill(isActive ? activeColor : Color.white.opacity(0.12))
-            )
+            .frame(height: 48)
+            .glossyPill(isHighlighted: isActive)
         }
         .buttonStyle(.plain)
     }
 
     private func circularIconToggle(
         icon: String,
+        label: String,
         isActive: Bool,
-        activeColor: Color,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .background(
-                    Circle()
-                        .fill(isActive ? activeColor : Color.white.opacity(0.12))
-                )
+            VStack(spacing: 2) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .bold))
+                Text(label)
+                    .font(.system(size: 8.5, weight: .semibold))
+            }
+            .foregroundColor(isActive ? .black : .white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .glossyPill(isHighlighted: isActive)
         }
         .buttonStyle(.plain)
     }
 
     private func systemActionRow(
         id: String,
-        emoji: String?,
-        icon: String?,
+        icon: String,
         title: String,
         action: @escaping () -> Void
     ) -> some View {
@@ -451,37 +428,24 @@ public struct ControlCenterView: View {
             action()
         }) {
             HStack(spacing: 10) {
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.12))
-                        .frame(width: 28, height: 28)
-                    if let emoji = emoji {
-                        Text(emoji).font(.system(size: 13))
-                    } else if let icon = icon {
-                        Image(systemName: icon)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                }
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(isActive ? .black : Color(red: 1.0, green: 0.839, blue: 0.039))
+                    .glossyCircle(size: 30, isHighlighted: isActive)
+
                 Text(title)
-                    .font(.system(size: 12.5, weight: .medium))
-                    .foregroundColor(.white.opacity(0.92))
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundColor(.white)
                     .lineLimit(1)
                 Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white.opacity(0.45))
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 10)
             .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isActive ? Color.white.opacity(0.20) : Color.white.opacity(0.07))
-            )
+            .glossyGlass(cornerRadius: 16, tintOpacity: isActive ? 0.22 : 0.08, rimOpacity: 0.32, shadowRadius: 6)
         }
         .buttonStyle(.plain)
-    }
-
-    private func currentTimeString() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm"
-        return formatter.string(from: Date())
     }
 }

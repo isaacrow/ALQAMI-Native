@@ -1,7 +1,7 @@
 import SwiftUI
 import CoreImage.CIFilterBuiltins
 
-// MARK: - Exact ALQAMI 6 Split-Pane Product Detail View (screenshot-view2.png)
+// MARK: - Exact ALQAMI 6 Split-Pane Product Detail View with Apple Glossy Glass & Real Voice Narration
 public struct ArtifactDetailView: View {
     @State public var currentArtifact: Artifact
     public var isArabic: Bool = true
@@ -10,6 +10,7 @@ public struct ArtifactDetailView: View {
     public var onBack: () -> Void
     public var onLaunchAR: (Artifact) -> Void
 
+    @ObservedObject private var hardware = RealHardwareMonitor.shared
     @State private var openAccordion: String? = "details"
     @State private var showQRModal: Bool = false
     @State private var showShareSheet: Bool = false
@@ -34,29 +35,30 @@ public struct ArtifactDetailView: View {
 
     public var body: some View {
         GeometryReader { geo in
-            let isWide = geo.size.width > 660
+            let isWide = geo.size.width > 640
             ZStack {
                 if isWide {
                     // Horizontal Split-Pane (Exact screenshot-view2.png layout)
                     HStack(spacing: 0) {
-                        leftStudio3DPane
-                            .frame(width: geo.size.width * 0.50)
+                        leftStudio3DPane(isWide: true)
+                            .frame(width: geo.size.width * 0.48)
 
-                        Divider().background(Color.white.opacity(0.1))
+                        Divider().background(Color.white.opacity(0.18))
 
-                        rightDetailsGlassPane
-                            .frame(width: geo.size.width * 0.50)
+                        rightDetailsGlassPane(isWide: true)
+                            .frame(width: geo.size.width * 0.52)
                     }
                     .environment(\.layoutDirection, .leftToRight)
                 } else {
-                    // Compact Portrait Split-Pane (Top #CBC9C5 3D Studio + Bottom Frosted Details)
+                    // Proportional Portrait Split-Pane for iPhone
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 0) {
-                            leftStudio3DPane
-                                .frame(height: 330)
+                            leftStudio3DPane(isWide: false)
+                                .frame(height: 295)
 
-                            rightDetailsGlassPane
+                            rightDetailsGlassPane(isWide: false)
                         }
+                        .padding(.bottom, 56)
                     }
                 }
 
@@ -66,6 +68,9 @@ public struct ArtifactDetailView: View {
                 }
             }
         }
+        .onDisappear {
+            hardware.stopSpeaking()
+        }
         .sheet(isPresented: $showShareSheet) {
             ShareActivityView(activityItems: [
                 "\(currentArtifact.title.ar) — \(currentArtifact.subtitle.ar) | ALQAMI Spatial Museum (\(currentArtifact.itemCode))"
@@ -73,18 +78,18 @@ public struct ArtifactDetailView: View {
         }
     }
 
-    // MARK: - Left / Top Pane: #CBC9C5 Warm Stone-Gray 3D Studio
-    private var leftStudio3DPane: some View {
+    // MARK: - Left / Top Pane: #CBC9C5 Warm Stone-Gray 3D Studio with Glossy Action Controls
+    private func leftStudio3DPane(isWide: Bool) -> some View {
         ZStack {
             // Exact #CBC9C5 Warm Stone-Gray Studio Background
             Color(red: 0.796, green: 0.788, blue: 0.773)
 
-            // Studio Vignette
+            // Studio Vignette + Glossy Top Specular Highlight
             RadialGradient(
-                colors: [Color.clear, Color.black.opacity(0.08)],
+                colors: [Color.white.opacity(0.18), Color.black.opacity(0.09)],
                 center: .center,
-                startRadius: 50,
-                endRadius: 240
+                startRadius: 40,
+                endRadius: 210
             )
 
             // Interactive Real USDZ 3D Model with Duo-Fold 3D Transition
@@ -100,35 +105,35 @@ public struct ArtifactDetailView: View {
                 perspective: 0.5
             )
             .opacity(isFoldTransitioning ? 0.35 : 1.0)
-            .padding(.bottom, 44)
+            .padding(.bottom, 42)
 
-            // Curved Orbit Slider Track + Center Rotate3d Button
+            // Curved Orbit Slider Track + Center Rotate3d Badge
             VStack {
                 Spacer()
                 ZStack {
                     Path { path in
                         path.move(to: CGPoint(x: 20, y: 8))
-                        path.addQuadCurve(to: CGPoint(x: 200, y: 8), control: CGPoint(x: 110, y: 34))
+                        path.addQuadCurve(to: CGPoint(x: 180, y: 8), control: CGPoint(x: 100, y: 30))
                     }
-                    .stroke(Color.black.opacity(0.22), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                    .frame(width: 220, height: 36)
+                    .stroke(Color.black.opacity(0.20), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                    .frame(width: 200, height: 32)
 
                     Circle()
                         .fill(Color.white)
-                        .frame(width: 30, height: 30)
-                        .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
+                        .frame(width: 28, height: 28)
+                        .shadow(color: Color.black.opacity(0.22), radius: 5, x: 0, y: 3)
                         .overlay(
                             Image(systemName: "rotate.3d")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(.black.opacity(0.75))
                         )
-                        .offset(y: 6)
+                        .offset(y: 5)
                 }
-                .padding(.bottom, 64)
+                .padding(.bottom, 58)
             }
             .allowsHitTesting(false)
 
-            // Bottom Action Bar: Prev/Next (< >), QR Code, Yellow AR Scan Button, "معاينة في المكان" Pill
+            // Bottom Action Bar: Glossy Prev/Next (< >), QR Code, Yellow AR Scan Button, "معاينة في المكان" Glossy Pill
             VStack {
                 Spacer()
                 HStack(spacing: 8) {
@@ -136,130 +141,145 @@ public struct ArtifactDetailView: View {
                     HStack(spacing: 6) {
                         Button(action: { switchArtifact(delta: -1) }) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 12.5, weight: .bold))
                                 .foregroundColor(.white)
-                                .frame(width: 34, height: 34)
-                                .background(Circle().fill(Color.black.opacity(0.32)))
-                                .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                                .glossyCircle(size: 34)
                         }
+                        .buttonStyle(.plain)
+
                         Button(action: { switchArtifact(delta: 1) }) {
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 12.5, weight: .bold))
                                 .foregroundColor(.white)
-                                .frame(width: 34, height: 34)
-                                .background(Circle().fill(Color.black.opacity(0.32)))
-                                .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                                .glossyCircle(size: 34)
                         }
+                        .buttonStyle(.plain)
                     }
 
-                    Spacer()
+                    Spacer(minLength: 4)
 
-                    // QR Code Modal Trigger
+                    // Real CoreImage QR Code Modal Trigger
                     Button(action: {
                         SpatialSoundHelper.shared.playSnapHaptic()
                         withAnimation(.spring()) { showQRModal = true }
                     }) {
                         Image(systemName: "qrcode")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
-                            .frame(width: 38, height: 38)
-                            .background(Circle().fill(Color.black.opacity(0.45)))
-                            .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 1))
+                            .glossyCircle(size: 36)
                     }
+                    .buttonStyle(.plain)
 
-                    // Round Yellow #FFD60A AR Mode Scan Icon Button
+                    // Round Glossy Yellow #FFD60A AR Mode Scan Icon Button
                     Button(action: {
                         SpatialSoundHelper.shared.playPlacementHaptic()
                         onLaunchAR(currentArtifact)
                     }) {
                         Image(systemName: "viewfinder")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 15, weight: .bold))
                             .foregroundColor(.black)
-                            .frame(width: 40, height: 40)
-                            .background(Circle().fill(Color(red: 1.0, green: 0.839, blue: 0.039))) // #FFD60A
-                            .shadow(color: Color.black.opacity(0.25), radius: 8, x: 0, y: 4)
+                            .glossyCircle(size: 36, isSelected: true)
                     }
+                    .buttonStyle(.plain)
 
-                    // "معاينة في المكان" (Preview in your space) Dark Glass Pill Button
+                    // "معاينة في المكان" (Preview in your space) Glossy Glass Pill Button
                     Button(action: {
                         SpatialSoundHelper.shared.playPlacementHaptic()
                         onLaunchAR(currentArtifact)
                     }) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 5) {
                             Image(systemName: "arkit")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 13, weight: .bold))
                             Text(isArabic ? "معاينة في المكان" : "Preview in Space")
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 11.5, weight: .bold))
+                                .lineLimit(1)
                         }
                         .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(Color.black.opacity(0.38)))
-                        .overlay(Capsule().stroke(Color.white.opacity(0.22), lineWidth: 1))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .glossyPill()
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 12)
                 .environment(\.layoutDirection, .leftToRight)
             }
         }
     }
 
-    // MARK: - Right / Bottom Pane: Frosted Dark Glass Details & 4 Accordions
-    private var rightDetailsGlassPane: some View {
+    // MARK: - Right / Bottom Pane: Apple Glossy Glass Details, Real Voice Narration & 4 Accordions
+    private func rightDetailsGlassPane(isWide: Bool) -> some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 16) {
-                // 1. Top Navigation Row: Back (<) on Left, Share & Heart on Right
+            VStack(alignment: .leading, spacing: 14) {
+                // 1. Top Navigation Row: Glossy Back (<) on Left, Real Voice Narration + Share + Heart on Right
                 HStack {
                     Button(action: {
                         SpatialSoundHelper.shared.playSnapHaptic()
+                        hardware.stopSpeaking()
                         onBack()
                     }) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(.white.opacity(0.85))
-                            .frame(width: 38, height: 38)
-                            .background(Circle().fill(Color.white.opacity(0.10)))
-                            .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                            .glossyCircle(size: 36)
                     }
+                    .buttonStyle(.plain)
 
                     Spacer()
 
                     HStack(spacing: 8) {
+                        // Real AVSpeechSynthesizer Voice Narration Button (Arabic / English)
+                        Button(action: {
+                            SpatialSoundHelper.shared.playSnapHaptic()
+                            let narration = "\(currentArtifact.title.text(isArabic: isArabic)). \(currentArtifact.description.text(isArabic: isArabic)). \(currentArtifact.historicalContext.text(isArabic: isArabic))"
+                            hardware.speakNarration(narration, isArabic: isArabic)
+                        }) {
+                            HStack(spacing: 5) {
+                                Image(systemName: hardware.isSpeaking ? "waveform" : "speaker.wave.2.fill")
+                                    .font(.system(size: 12, weight: .bold))
+                                Text(hardware.isSpeaking ? (isArabic ? "إيقاف الصوت" : "Stop") : (isArabic ? "استماع صوتي" : "Listen"))
+                                    .font(.system(size: 11, weight: .bold))
+                            }
+                            .foregroundColor(hardware.isSpeaking ? .black : .white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .glossyPill(isSelected: hardware.isSpeaking)
+                        }
+                        .buttonStyle(.plain)
+
+                        // Share Sheet Button
                         Button(action: {
                             SpatialSoundHelper.shared.playSnapHaptic()
                             showShareSheet = true
                         }) {
                             Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.85))
-                                .frame(width: 38, height: 38)
-                                .background(Circle().fill(Color.white.opacity(0.10)))
-                                .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                                .font(.system(size: 13.5, weight: .semibold))
+                                .foregroundColor(.white)
+                                .glossyCircle(size: 36)
                         }
+                        .buttonStyle(.plain)
 
+                        // Favorite Heart Button
                         Button(action: {
+                            SpatialSoundHelper.shared.playSnapHaptic()
                             onToggleFavorite(currentArtifact.id)
                         }) {
                             Image(systemName: isFavorite ? "heart.fill" : "heart")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(isFavorite ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white.opacity(0.85))
-                                .frame(width: 38, height: 38)
-                                .background(
-                                    Circle()
-                                        .fill(isFavorite ? Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.2) : Color.white.opacity(0.10))
-                                )
-                                .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                                .font(.system(size: 13.5, weight: .semibold))
+                                .foregroundColor(isFavorite ? .black : .white)
+                                .glossyCircle(size: 36, isSelected: isFavorite)
                         }
+                        .buttonStyle(.plain)
                     }
                 }
                 .environment(\.layoutDirection, .leftToRight)
 
                 // 2. Title + Star Rating Row + Subtitle
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 5) {
                     HStack(alignment: .top) {
                         Text(currentArtifact.title.text(isArabic: isArabic))
-                            .font(.system(size: 24, weight: .bold))
+                            .font(.system(size: isWide ? 22 : 19, weight: .bold))
                             .foregroundColor(.white)
 
                         Spacer()
@@ -269,40 +289,39 @@ public struct ArtifactDetailView: View {
                             HStack(spacing: 2) {
                                 ForEach(1...5, id: \.self) { star in
                                     Image(systemName: Double(star) <= round(currentArtifact.rating) ? "star.fill" : "star")
-                                        .font(.system(size: 11))
-                                        .foregroundColor(Double(star) <= round(currentArtifact.rating) ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white.opacity(0.25))
+                                        .font(.system(size: 10.5))
+                                        .foregroundColor(Double(star) <= round(currentArtifact.rating) ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white.opacity(0.28))
                                 }
                             }
                             Text("\(currentArtifact.reviewsCount) \(isArabic ? "تقييم" : "reviews")")
                                 .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.white.opacity(0.45))
+                                .foregroundColor(.white.opacity(0.55))
                         }
                     }
 
                     Text(currentArtifact.subtitle.text(isArabic: isArabic))
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white.opacity(0.55))
+                        .font(.system(size: 12.5, weight: .medium))
+                        .foregroundColor(.white.opacity(0.65))
                 }
 
                 // 3. Description Paragraph
                 Text(currentArtifact.description.text(isArabic: isArabic))
-                    .font(.system(size: 13.5, weight: .regular))
-                    .foregroundColor(.white.opacity(0.82))
-                    .lineSpacing(5)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(.white.opacity(0.86))
+                    .lineSpacing(4)
 
-                // 4. Item Code Badge Row ("رقم القطعة" + itemCode Pill)
-                HStack(spacing: 10) {
+                // 4. Item Code Badge Row ("رقم القطعة" + Glossy itemCode Pill)
+                HStack(spacing: 8) {
                     Text(isArabic ? "رقم القطعة" : "Item Code")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.white.opacity(0.45))
+                        .foregroundColor(.white.opacity(0.55))
 
                     Text(currentArtifact.itemCode)
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.9))
-                        .padding(.horizontal, 12)
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 11)
                         .padding(.vertical, 5)
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.10)))
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                        .glossyPill()
                 }
 
                 // 5. Four Collapsible Accordions (Exact ALQAMI 6 Sections)
@@ -311,7 +330,7 @@ public struct ArtifactDetailView: View {
                         id: "details",
                         title: isArabic ? "تفاصيل القطعة (Details)" : "Artifact Details",
                         content: AnyView(
-                            VStack(alignment: .leading, spacing: 6) {
+                            VStack(alignment: .leading, spacing: 5) {
                                 detailBullet(label: isArabic ? "الفترة:" : "Period:", value: currentArtifact.period.text(isArabic: isArabic))
                                 detailBullet(label: isArabic ? "الصانع / المؤلف:" : "Creator:", value: currentArtifact.creator.text(isArabic: isArabic))
                                 detailBullet(label: isArabic ? "المؤسسة:" : "Institution:", value: currentArtifact.institution.text(isArabic: isArabic))
@@ -331,7 +350,7 @@ public struct ArtifactDetailView: View {
                         id: "measurements",
                         title: isArabic ? "القياسات (Measurements)" : "Measurements",
                         content: AnyView(
-                            VStack(alignment: .leading, spacing: 6) {
+                            VStack(alignment: .leading, spacing: 5) {
                                 detailBullet(label: isArabic ? "الأبعاد:" : "Dimensions:", value: currentArtifact.dimensions.formatted(isArabic: isArabic))
                                 if let seals = currentArtifact.seals {
                                     detailBullet(label: isArabic ? "الأختام والتوثيق:" : "Seals:", value: seals.text(isArabic: isArabic))
@@ -345,8 +364,8 @@ public struct ArtifactDetailView: View {
                         title: isArabic ? "التسليم و التعليمات (Delivery & Packaging)" : "Delivery & Packaging",
                         content: AnyView(
                             Text(currentArtifact.delivery?.text(isArabic: isArabic) ?? "شحن متحفي مؤمّن داخل كبسولة حفظ حرارية.")
-                                .font(.system(size: 12.5))
-                                .foregroundColor(.white.opacity(0.75))
+                                .font(.system(size: 12))
+                                .foregroundColor(.white.opacity(0.78))
                         )
                     )
 
@@ -355,14 +374,14 @@ public struct ArtifactDetailView: View {
                         title: isArabic ? "تعليمات التجميع (Assembly & Mounting)" : "Assembly & Mounting",
                         content: AnyView(
                             Text(currentArtifact.assembly?.text(isArabic: isArabic) ?? "جاهز للعرض المباشر أو المعاينة المكانية بالواقع المعزز.")
-                                .font(.system(size: 12.5))
-                                .foregroundColor(.white.opacity(0.75))
+                                .font(.system(size: 12))
+                                .foregroundColor(.white.opacity(0.78))
                         )
                     )
                 }
-                .padding(.top, 4)
+                .padding(.top, 2)
 
-                // 6. Bottom Amber 3D Box Button (Matches bottom-left icon in screenshot-view2.png)
+                // 6. Bottom Glossy Amber 3D Cube Launch Button
                 HStack {
                     Spacer()
                     Button(action: {
@@ -370,36 +389,35 @@ public struct ArtifactDetailView: View {
                         onLaunchAR(currentArtifact)
                     }) {
                         Image(systemName: "cube")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
-                            .frame(width: 40, height: 40)
-                            .background(Circle().fill(Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.18)))
-                            .overlay(Circle().stroke(Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.45), lineWidth: 1))
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(.black)
+                            .glossyCircle(size: 38, isSelected: true)
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(.top, 8)
+                .padding(.top, 4)
             }
-            .padding(24)
+            .padding(isWide ? 22 : 16)
             .environment(\.layoutDirection, isArabic ? .rightToLeft : .leftToRight)
         }
-        .background(Color.black.opacity(0.22))
+        .background(Color.black.opacity(0.18))
     }
 
     private func detailBullet(label: String, value: String) -> some View {
         HStack(alignment: .top, spacing: 6) {
             Text(label)
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(.white.opacity(0.88))
+                .font(.system(size: 11.5, weight: .bold))
+                .foregroundColor(.white.opacity(0.9))
             Text(value)
-                .font(.system(size: 12, weight: .regular))
-                .foregroundColor(.white.opacity(0.70))
+                .font(.system(size: 11.5, weight: .regular))
+                .foregroundColor(.white.opacity(0.72))
         }
     }
 
     private func accordionItem(id: String, title: String, content: AnyView) -> some View {
         let isOpen = openAccordion == id
         return VStack(alignment: .leading, spacing: 0) {
-            Divider().background(Color.white.opacity(0.12))
+            Divider().background(Color.white.opacity(0.14))
 
             Button(action: {
                 SpatialSoundHelper.shared.playSnapHaptic()
@@ -409,19 +427,20 @@ public struct ArtifactDetailView: View {
             }) {
                 HStack {
                     Text(title)
-                        .font(.system(size: 13.5, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.92))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.94))
                     Spacer()
                     Image(systemName: isOpen ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.5))
+                        .font(.system(size: 11.5, weight: .bold))
+                        .foregroundColor(.white.opacity(0.6))
                 }
-                .padding(.vertical, 14)
+                .padding(.vertical, 12)
             }
+            .buttonStyle(.plain)
 
             if isOpen {
                 content
-                    .padding(.bottom, 14)
+                    .padding(.bottom, 12)
                     .transition(.opacity)
             }
         }
@@ -432,6 +451,7 @@ public struct ArtifactDetailView: View {
         guard let idx = all.firstIndex(where: { $0.id == currentArtifact.id }) else { return }
         let nextIdx = (idx + delta + all.count) % all.count
         SpatialSoundHelper.shared.playSnapHaptic()
+        hardware.stopSpeaking()
         withAnimation(.easeInOut(duration: 0.22)) {
             isFoldTransitioning = true
             foldAngle = delta > 0 ? -45 : 45
@@ -445,10 +465,10 @@ public struct ArtifactDetailView: View {
         }
     }
 
-    // MARK: - Real CoreImage QR Code Modal Overlay
+    // MARK: - Real CoreImage QR Code Modal Overlay (Glossy Glass)
     private var qrModalOverlay: some View {
         ZStack {
-            Color.black.opacity(0.75)
+            Color.black.opacity(0.74)
                 .ignoresSafeArea()
                 .onTapGesture {
                     withAnimation { showQRModal = false }
@@ -458,7 +478,7 @@ public struct ArtifactDetailView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(isArabic ? "مسح رمز QR للواقع المعزز" : "Scan QR for Mobile AR")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 14.5, weight: .bold))
                             .foregroundColor(.white)
                         Text(currentArtifact.title.text(isArabic: isArabic))
                             .font(.system(size: 11))
@@ -467,11 +487,11 @@ public struct ArtifactDetailView: View {
                     Spacer()
                     Button(action: { withAnimation { showQRModal = false } }) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 12.5, weight: .bold))
                             .foregroundColor(.white)
-                            .frame(width: 30, height: 30)
-                            .background(Circle().fill(Color.white.opacity(0.12)))
+                            .glossyCircle(size: 30)
                     }
+                    .buttonStyle(.plain)
                 }
 
                 if let qrImage = generateQRCode(from: "https://alqami.spatial/ar?model=\(currentArtifact.slug)&id=\(currentArtifact.id)") {
@@ -479,14 +499,14 @@ public struct ArtifactDetailView: View {
                         .interpolation(.none)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 190, height: 190)
-                        .padding(14)
-                        .background(RoundedRectangle(cornerRadius: 20).fill(Color.white))
+                        .frame(width: 175, height: 175)
+                        .padding(12)
+                        .background(RoundedRectangle(cornerRadius: 18).fill(Color.white))
                 }
 
                 Text(isArabic ? "افتح كاميرا الآيفون أو الماسح الضوئي لفتح المجسم مباشرة في غرفتك" : "Point your iPhone camera or AR scanner to launch this 3D artifact in your room")
                     .font(.system(size: 11))
-                    .foregroundColor(.white.opacity(0.65))
+                    .foregroundColor(.white.opacity(0.72))
                     .multilineTextAlignment(.center)
 
                 Button(action: {
@@ -500,15 +520,14 @@ public struct ArtifactDetailView: View {
                     }
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 11)
-                    .background(Capsule().fill(Color(red: 1.0, green: 0.839, blue: 0.039)))
+                    .padding(.vertical, 10)
+                    .glossyPill(isSelected: true)
                 }
+                .buttonStyle(.plain)
             }
-            .padding(22)
-            .frame(maxWidth: 320)
-            .background(RoundedRectangle(cornerRadius: 28).fill(Color(red: 0.08, green: 0.09, blue: 0.13)))
-            .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color.white.opacity(0.2), lineWidth: 1))
-            .shadow(color: Color.black.opacity(0.6), radius: 24)
+            .padding(20)
+            .frame(maxWidth: 310)
+            .glossyGlass(cornerRadius: 26, tintOpacity: 0.35)
         }
     }
 

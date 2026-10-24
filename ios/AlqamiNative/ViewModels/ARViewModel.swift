@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import RealityKit
 import ARKit
 import Combine
@@ -13,6 +14,7 @@ public final class ARViewModel: ObservableObject {
     @Published public var showMeshWireframe: Bool = false
     @Published public var statusMessage: String = "ابحث عن سطح مستوٍ..."
     @Published public var modelLoadError: String? = nil
+    @Published public var snapshotSavedToast: Bool = false
 
     // Spatial Computing Diagnostics (Images 1, 2, 3, 4)
     @Published public var activeMeshAnchorCount: Int = 0
@@ -21,6 +23,7 @@ public final class ARViewModel: ObservableObject {
     @Published public var lastCollisionCastNormal: SIMD3<Float> = SIMD3<Float>(0, 1, 0)
     @Published public var lastCollisionPosition: SIMD3<Float> = .zero
 
+    public weak var arView: ARView? = nil
     public var placedEntity: ModelEntity? = nil
 
     public init(artifact: Artifact) {
@@ -44,6 +47,23 @@ public final class ARViewModel: ObservableObject {
         if let entity = placedEntity {
             let baseScale = artifact.model.scale
             entity.scale = SIMD3<Float>(repeating: baseScale * scaleMultiplier)
+        }
+    }
+
+    /// Captures a real high-resolution AR snapshot from RealityKit `ARView` and saves it to the iOS Photos library.
+    public func captureARSnapshot() {
+        guard let arView = arView else { return }
+        SpatialSoundHelper.shared.playPlacementHaptic()
+        arView.snapshot(saveToHDR: false) { [weak self] image in
+            guard let self = self, let image = image else { return }
+            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+            Task { @MainActor in
+                self.statusMessage = "تم حفظ صورة الواقع المعزز في ألبوم الصور!"
+                self.snapshotSavedToast = true
+                SpatialSoundHelper.shared.playSuccessHaptic()
+                try? await Task.sleep(nanoseconds: 2_200_000_000)
+                self.snapshotSavedToast = false
+            }
         }
     }
 }
