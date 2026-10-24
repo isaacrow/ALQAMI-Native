@@ -1,214 +1,354 @@
 import SwiftUI
 import AVFoundation
 
-// MARK: - Cultural Vision Object Scanner View
+// MARK: - Exact 1:1 ARKit 3D Object Scanner & Linked Data RDF Studio (AlqamiARKitObjectScanner.tsx)
 public struct CulturalVisionScannerView: View {
-    var onSelectArtifact: (Artifact) -> Void
-    var onDismiss: () -> Void
+    public var onSelectArtifact: (Artifact) -> Void
+    public var onDismiss: () -> Void
 
-    @State private var scanLineOffset: CGFloat = -180
-    @State private var recognizedArtifact: Artifact? = nil
-    @State private var isAnalyzing: Bool = false
-    @State private var matchConfidence: Double = 0.984
+    @State private var scanState: ScanState = .idle
+    @State private var scanProgress: Int = 0
+    @State private var activeTab: RDFTab = .turtle
+    @State private var selectedArtifact: Artifact = HeritageCatalog.artifacts[0]
+    @State private var isCreatingCustom: Bool = false
+
+    // Custom RDF Creator Fields
+    @State private var customTitle: String = ""
+    @State private var customCreator: String = ""
+    @State private var customPeriod: String = ""
+    @State private var customMaterial: String = ""
+    @State private var customDimensions: String = ""
+
+    public enum ScanState {
+        case idle
+        case scanning
+        case recognized
+    }
+
+    public enum RDFTab: String, CaseIterable {
+        case turtle = "turtle"
+        case rdfxml = "rdfxml"
+        case bibframe = "bibframe"
+    }
+
+    public init(
+        onSelectArtifact: @escaping (Artifact) -> Void,
+        onDismiss: @escaping () -> Void
+    ) {
+        self.onSelectArtifact = onSelectArtifact
+        self.onDismiss = onDismiss
+    }
 
     public var body: some View {
         ZStack {
-            // Camera Background Preview
-            CameraLivePreviewRepresentable()
-                .ignoresSafeArea()
+            Color(red: 0.04, green: 0.05, blue: 0.08).ignoresSafeArea()
 
-            // Dark Vignette
-            RadialGradient(
-                colors: [Color.clear, Color.black.opacity(0.65)],
-                center: .center,
-                startRadius: 100,
-                endRadius: 400
-            )
-            .ignoresSafeArea()
-
-            // Top Header Bar
-            VStack {
+            VStack(spacing: 0) {
+                // Top Header Bar
                 HStack {
                     Button(action: {
                         SpatialSoundHelper.shared.playSnapHaptic()
                         onDismiss()
                     }) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
-                            .frame(width: 40, height: 40)
-                            .background(Circle().fill(.ultraThinMaterial))
-                            .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(Color.white.opacity(0.10)))
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "viewfinder")
+                                .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+                            Text("ARKit 3D Object Scanner & Linked Data RDF")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        Text("الماسح الضوئي للرموز والمجسمات الأثرية وتوليد بيانات RDF/Bibframe الدلالية")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.55))
                     }
 
                     Spacer()
 
-                    HStack(spacing: 8) {
-                        Image(systemName: "viewfinder")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.15))
-                        Text("ماسح الرؤية الثقافية الذكي")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Capsule().fill(.ultraThinMaterial))
-                    .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 1))
-
-                    Spacer()
-
-                    Color.clear.frame(width: 40, height: 40)
-                }
-                .padding(.horizontal, 18)
-                .padding(.top, 16)
-
-                Spacer()
-            }
-
-            // Central Holographic Reticle Frame with Moving Laser Line
-            VStack(spacing: 20) {
-                ZStack {
-                    // Holographic Corner Brackets
-                    RoundedRectangle(cornerRadius: 24)
-                        .stroke(Color(red: 1.0, green: 0.84, blue: 0.15).opacity(0.85), lineWidth: 2)
-                        .frame(width: 280, height: 280)
-
-                    // Target Crosshair Center
-                    Image(systemName: "plus")
-                        .font(.system(size: 28, weight: .ultraLight))
-                        .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.15).opacity(0.5))
-
-                    // Animated Laser Scanning Line
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.clear, Color(red: 1.0, green: 0.84, blue: 0.15), Color.clear],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: 260, height: 3)
-                        .shadow(color: Color(red: 1.0, green: 0.84, blue: 0.15), radius: 8, x: 0, y: 0)
-                        .offset(y: scanLineOffset)
-                }
-
-                Text(isAnalyzing ? "جاري مطابقة المعالم الأثرية..." : "وجّه الكاميرا نحو قطعة تراثية أو كتاب...")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white.opacity(0.85))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Capsule().fill(Color.black.opacity(0.5)))
-            }
-
-            // Bottom Scan Action Button
-            VStack {
-                Spacer()
-
-                Button(action: {
-                    triggerScanRecognition()
-                }) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 16, weight: .bold))
-                        Text("التقاط وتحليل القطعة")
-                            .font(.system(size: 15, weight: .bold))
-                    }
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 14)
-                    .background(Capsule().fill(Color(red: 1.0, green: 0.84, blue: 0.15)))
-                    .shadow(color: Color(red: 1.0, green: 0.84, blue: 0.15).opacity(0.4), radius: 16, x: 0, y: 4)
-                }
-                .padding(.bottom, 40)
-            }
-
-            // Recognition Match Sheet Popup
-            if let matched = recognizedArtifact {
-                ZStack {
-                    Color.black.opacity(0.5).ignoresSafeArea()
-
-                    VStack(spacing: 16) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "checkmark.seal.fill")
-                                        .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.15))
-                                    Text("تم التعرف بنسبة \(String(format: "%.1f", matchConfidence * 100))%")
-                                        .font(.system(size: 12, weight: .bold))
-                                        .foregroundColor(Color(red: 1.0, green: 0.84, blue: 0.15))
-                                }
-
-                                Text(matched.title.ar)
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(.white)
-
-                                Text(matched.period.ar)
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.7))
-                            }
-
-                            Spacer()
-
-                            Button(action: {
-                                recognizedArtifact = nil
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.white.opacity(0.6))
+                    // Artifact Selector Menu
+                    Menu {
+                        ForEach(HeritageCatalog.artifacts) { item in
+                            Button(item.title.ar) {
+                                selectedArtifact = item
+                                scanState = .recognized
                             }
                         }
-
-                        Text(matched.description.ar)
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(.white.opacity(0.85))
-                            .lineLimit(3)
-
-                        Button(action: {
-                            onSelectArtifact(matched)
-                        }) {
-                            HStack(spacing: 10) {
-                                Image(systemName: "arkit")
-                                    .font(.system(size: 16, weight: .bold))
-                                Text("عرض القطعة في الواقع المعزز (AR)")
-                                    .font(.system(size: 15, weight: .bold))
-                            }
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(RoundedRectangle(cornerRadius: 14).fill(Color(red: 1.0, green: 0.84, blue: 0.15)))
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(selectedArtifact.title.ar)
+                                .font(.system(size: 11.5, weight: .bold))
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 10))
                         }
+                        .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(Capsule().fill(Color.white.opacity(0.10)))
                     }
-                    .padding(22)
-                    .background(RoundedRectangle(cornerRadius: 24).fill(Color(red: 0.10, green: 0.12, blue: 0.16)))
-                    .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.2), lineWidth: 1))
-                    .padding(.horizontal, 24)
-                    .transition(.scale.combined(with: .opacity))
+                }
+                .padding(16)
+                .background(Color.black.opacity(0.35))
+
+                Divider().background(Color.white.opacity(0.12))
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 18) {
+                        // 1. Live Camera / 3D Bounding Box Point-Cloud Scanner Stage
+                        scannerViewportStage
+
+                        // 2. Semantic Web / Linked Data RDF Studio Panel
+                        rdfSemanticStudioPanel
+                    }
+                    .padding(18)
                 }
             }
         }
-        .onAppear {
-            withAnimation(Animation.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
-                scanLineOffset = 130
+        .environment(\.layoutDirection, .leftToRight)
+    }
+
+    // MARK: - 1. Live Camera + 3D Bounding Box Point-Cloud Stage
+    private var scannerViewportStage: some View {
+        ZStack {
+            // Live Camera Feed
+            CameraLivePreviewRepresentable()
+                .frame(height: 270)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+
+            // Dark Overlay & Grid
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color.black.opacity(0.38))
+
+            // 3D Artifact Preview & Bounding Box inside Reticle
+            ZStack {
+                Artifact3DTurntableSceneView(
+                    artifact: selectedArtifact,
+                    autoRotate: true,
+                    allowsCameraControl: true,
+                    cameraDistance: 0.68
+                )
+                .frame(width: 200, height: 200)
+
+                // Bounding Box Corners
+                RoundedRectangle(cornerRadius: 22)
+                    .stroke(
+                        scanState == .recognized ? Color.green : Color(red: 1.0, green: 0.839, blue: 0.039),
+                        style: StrokeStyle(lineWidth: 2, dash: scanState == .scanning ? [6, 4] : [])
+                    )
+                    .frame(width: 210, height: 210)
+            }
+
+            // Top Status Badge & Bottom Scan Controls
+            VStack {
+                HStack {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(scanState == .recognized ? Color.green : (scanState == .scanning ? Color(red: 1.0, green: 0.839, blue: 0.039) : Color.cyan))
+                            .frame(width: 8, height: 8)
+                        Text(scanState == .recognized
+                             ? "OBJECT RECOGNIZED • \(selectedArtifact.itemCode)"
+                             : (scanState == .scanning ? "SCANNING POINT CLOUD... \(scanProgress)%" : "ARKIT OBJECT TRACKING READY"))
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.black.opacity(0.65)))
+
+                    Spacer()
+
+                    Button(action: {
+                        onSelectArtifact(selectedArtifact)
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "arkit")
+                            Text("فتح في AR")
+                        }
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(Color(red: 1.0, green: 0.839, blue: 0.039)))
+                    }
+                }
+
+                Spacer()
+
+                HStack(spacing: 12) {
+                    Button(action: { startPointCloudScan() }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: scanState == .scanning ? "dot.radiowaves.left.and.right" : "qrcode.viewfinder")
+                            Text(scanState == .scanning ? "جاري المسح الثلاثي \(scanProgress)%..." : "مسح QR / التعرف على القطعة 3D")
+                                .font(.system(size: 12.5, weight: .bold))
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 11)
+                        .background(Capsule().fill(Color(red: 1.0, green: 0.839, blue: 0.039)))
+                    }
+
+                    Button(action: {
+                        withAnimation { isCreatingCustom.toggle() }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                            Text(isCreatingCustom ? "عرض الكود" : "إضافة سجل RDF")
+                                .font(.system(size: 12, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 11)
+                        .background(Capsule().fill(Color.black.opacity(0.65)))
+                        .overlay(Capsule().stroke(Color.white.opacity(0.25), lineWidth: 1))
+                    }
+                }
+            }
+            .padding(16)
+        }
+        .frame(height: 270)
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.16), lineWidth: 1))
+    }
+
+    // MARK: - 2. Linked Data RDF / Turtle / Bibframe Semantic Panel
+    private var rdfSemanticStudioPanel: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            // Tabs: Turtle (.ttl), RDF/XML (.rdf), Bibframe 2.0
+            HStack(spacing: 8) {
+                rdfTabPill(.turtle, label: "Turtle (.ttl)")
+                rdfTabPill(.rdfxml, label: "RDF/XML (.rdf)")
+                rdfTabPill(.bibframe, label: "Bibframe 2.0")
+                Spacer()
+            }
+
+            if isCreatingCustom {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("إنشاء وثيقة RDF دلالية جديدة (Custom Semantic Record)")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+
+                    TextField("عنوان المخطوط أو القطعة الأثرية...", text: $customTitle)
+                        .textFieldStyle(.roundedBorder)
+                    TextField("المؤلف / الصانع (dc:creator)...", text: $customCreator)
+                        .textFieldStyle(.roundedBorder)
+                    TextField("الحقبة التاريخية (dcterms:temporal)...", text: $customPeriod)
+                        .textFieldStyle(.roundedBorder)
+                    TextField("المادة والخامة (crm:P45_consists_of)...", text: $customMaterial)
+                        .textFieldStyle(.roundedBorder)
+                }
+                .padding(14)
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.06)))
+            }
+
+            // Code Output Box
+            ScrollView(.horizontal, showsIndicators: true) {
+                Text(generatedRDFCode())
+                    .font(.system(size: 11.5, weight: .regular, design: .monospaced))
+                    .foregroundColor(Color(red: 0.55, green: 0.92, blue: 0.72))
+                    .padding(16)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 18).fill(Color.black.opacity(0.65)))
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.14), lineWidth: 1))
+        }
+        .padding(18)
+        .background(RoundedRectangle(cornerRadius: 24).fill(Color.white.opacity(0.06)))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.14), lineWidth: 1))
+    }
+
+    private func rdfTabPill(_ tab: RDFTab, label: String) -> some View {
+        let isSelected = activeTab == tab
+        return Button(action: {
+            SpatialSoundHelper.shared.playSnapHaptic()
+            activeTab = tab
+        }) {
+            Text(label)
+                .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                .foregroundColor(isSelected ? .black : .white.opacity(0.8))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? Color(red: 1.0, green: 0.839, blue: 0.039) : Color.white.opacity(0.08))
+                )
+        }
+    }
+
+    private func startPointCloudScan() {
+        SpatialSoundHelper.shared.playSnapHaptic()
+        scanState = .scanning
+        scanProgress = 0
+        Timer.scheduledTimer(withTimeInterval: 0.12, repeats: true) { timer in
+            if scanProgress >= 100 {
+                timer.invalidate()
+                scanState = .recognized
+                SpatialSoundHelper.shared.playSuccessHaptic()
+            } else {
+                scanProgress += 10
             }
         }
     }
 
-    private func triggerScanRecognition() {
-        SpatialSoundHelper.shared.playShutterSound()
-        isAnalyzing = true
+    private func generatedRDFCode() -> String {
+        let titleAr = customTitle.isEmpty ? selectedArtifact.title.ar : customTitle
+        let creatorAr = customCreator.isEmpty ? selectedArtifact.creator.ar : customCreator
+        let periodAr = customPeriod.isEmpty ? selectedArtifact.period.ar : customPeriod
+        let materialAr = customMaterial.isEmpty ? selectedArtifact.material.ar : customMaterial
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) {
-            isAnalyzing = false
-            SpatialSoundHelper.shared.playSuccessHaptic()
-            // Randomly select one of the high-profile artifacts (e.g. Nahj al-Balagha, Astrolabe, Helmet)
-            let candidates = [
-                HeritageCatalog.artifacts[0], // Nahj al-Balagha
-                HeritageCatalog.artifacts[2], // Helmet
-                HeritageCatalog.artifacts[3], // Zulfiqar
-                HeritageCatalog.artifacts[9]  // Astrolabe
-            ]
-            self.recognizedArtifact = candidates.randomElement() ?? HeritageCatalog.artifacts[0]
+        switch activeTab {
+        case .turtle:
+            return """
+            @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+            @prefix dc: <http://purl.org/dc/elements/1.1/> .
+            @prefix dcterms: <http://purl.org/dc/terms/> .
+            @prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+            @prefix bf: <http://id.loc.gov/ontologies/bibframe/> .
+            @prefix alqami: <https://alqami.iq/ontology/heritage#> .
+
+            <https://alqami.iq/resource/artifact/\(selectedArtifact.id)>
+                a crm:E22_Human-Made_Object , bf:Instance ;
+                dc:identifier "\(selectedArtifact.itemCode)" ;
+                dc:title "\(titleAr)"@ar , "\(selectedArtifact.title.en)"@en ;
+                dc:creator "\(creatorAr)"@ar ;
+                dcterms:temporal "\(periodAr)"@ar ;
+                crm:P45_consists_of "\(materialAr)"@ar ;
+                crm:P50_has_current_keeper "\(selectedArtifact.institution.ar)"@ar ;
+                alqami:has3DModel <https://alqami.iq/models/\(selectedArtifact.model.usdzFilename)> ;
+                alqami:spatialAnchorAlignment "horizontalPlane" .
+            """
+        case .rdfxml:
+            return """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                     xmlns:dc="http://purl.org/dc/elements/1.1/"
+                     xmlns:crm="http://www.cidoc-crm.org/cidoc-crm/"
+                     xmlns:alqami="https://alqami.iq/ontology/heritage#">
+              <crm:E22_Human-Made_Object rdf:about="https://alqami.iq/resource/artifact/\(selectedArtifact.id)">
+                <dc:identifier>\(selectedArtifact.itemCode)</dc:identifier>
+                <dc:title xml:lang="ar">\(titleAr)</dc:title>
+                <dc:title xml:lang="en">\(selectedArtifact.title.en)</dc:title>
+                <dc:creator xml:lang="ar">\(creatorAr)</dc:creator>
+                <crm:P45_consists_of xml:lang="ar">\(materialAr)</crm:P45_consists_of>
+                <alqami:has3DModel rdf:resource="https://alqami.iq/models/\(selectedArtifact.model.usdzFilename)"/>
+              </crm:E22_Human-Made_Object>
+            </rdf:RDF>
+            """
+        case .bibframe:
+            return """
+            @prefix bf: <http://id.loc.gov/ontologies/bibframe/> .
+            @prefix bflc: <http://id.loc.gov/ontologies/bflc/> .
+
+            <https://alqami.iq/bibframe/work/\(selectedArtifact.id)> a bf:Work , bf:Object ;
+                bf:title [ a bf:Title ; bf:mainTitle "\(titleAr)"@ar ] ;
+                bf:contribution [ a bf:Contribution ; bf:agent [ a bf:Agent ; bf:label "\(creatorAr)"@ar ] ] ;
+                bf:originDate "\(periodAr)" ;
+                bf:hasInstance <https://alqami.iq/bibframe/instance/\(selectedArtifact.id)> .
+            """
         }
     }
 }

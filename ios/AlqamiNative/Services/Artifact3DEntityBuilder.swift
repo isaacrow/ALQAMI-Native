@@ -20,6 +20,30 @@ public final class Artifact3DEntityBuilder {
         let root = ModelEntity()
         root.name = artifact.id
 
+        // 1. Load the real converted .usdz 3D model from Bundle
+        if let usdzURL = BundleImageLoader.usdzURL(named: artifact.model.usdzFilename),
+           let loadedEntity = try? Entity.load(contentsOf: usdzURL) {
+            let bounds = loadedEntity.visualBounds(relativeTo: nil)
+            let extents = bounds.extents
+            let maxDim = max(extents.x, max(extents.y, extents.z))
+            if maxDim > 0.0001 {
+                let targetSize: Float = 0.36
+                let scaleFactor = targetSize / maxDim
+                loadedEntity.scale = SIMD3<Float>(repeating: scaleFactor)
+                let center = bounds.center
+                loadedEntity.position = SIMD3<Float>(
+                    -center.x * scaleFactor,
+                    -bounds.min.y * scaleFactor,
+                    -center.z * scaleFactor
+                )
+            }
+            root.addChild(loadedEntity)
+            addContactShadow(to: root, radius: 0.22)
+            root.generateCollisionShapes(recursive: true)
+            return root
+        }
+
+        // 2. Fallback procedural geometry if USDZ is unavailable
         let archetype = artifact.model.archetype
         let primaryColor = UIColor(hex: artifact.model.primaryColorHex) ?? UIColor.systemBrown
         let secondaryColor = UIColor(hex: artifact.model.secondaryColorHex) ?? UIColor.systemYellow

@@ -4,9 +4,8 @@ import SwiftUI
 struct AlqamiNativeApp: App {
     var body: some Scene {
         WindowGroup {
-            CatalogHomeView()
+            SpatialRootView()
                 .preferredColorScheme(.dark)
-                .environment(\.layoutDirection, .rightToLeft)
         }
     }
 }

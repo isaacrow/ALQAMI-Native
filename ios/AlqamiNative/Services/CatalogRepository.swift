@@ -16,32 +16,8 @@ public final class LocalCatalogRepository: CatalogRepositoryProtocol {
         if !cachedArtifacts.isEmpty {
             return cachedArtifacts
         }
-
-        // 1. Try finding catalog.json in Bundle.main
-        var catalogData: Data? = nil
-        if let bundleUrl = Bundle.main.url(forResource: "catalog", withExtension: "json") {
-            catalogData = try? Data(contentsOf: bundleUrl)
-        }
-
-        // 2. Fallback to searching all bundles or local documents
-        if catalogData == nil {
-            for bundle in Bundle.allBundles {
-                if let url = bundle.url(forResource: "catalog", withExtension: "json") {
-                    catalogData = try? Data(contentsOf: url)
-                    break
-                }
-            }
-        }
-
-        guard let data = catalogData else {
-            // Return built-in catalog when bundle is standalone during initial preview
-            return HeritageCatalog.artifacts
-        }
-
-        let decoder = JSONDecoder()
-        let artifacts = try decoder.decode([Artifact].self, from: data)
-        self.cachedArtifacts = artifacts
-        return artifacts
+        self.cachedArtifacts = HeritageCatalog.artifacts
+        return HeritageCatalog.artifacts
     }
 
     public func fetchArtifact(byId id: String) async throws -> Artifact? {
