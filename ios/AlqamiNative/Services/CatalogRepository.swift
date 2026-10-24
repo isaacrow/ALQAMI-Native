@@ -34,8 +34,8 @@ public final class LocalCatalogRepository: CatalogRepositoryProtocol {
         }
 
         guard let data = catalogData else {
-            // Return built-in sample when bundle is standalone during initial preview
-            return [Artifact.sample]
+            // Return built-in catalog when bundle is standalone during initial preview
+            return HeritageCatalog.artifacts
         }
 
         let decoder = JSONDecoder()

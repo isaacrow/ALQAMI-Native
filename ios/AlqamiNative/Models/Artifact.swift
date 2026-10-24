@@ -246,6 +246,10 @@ public struct Artifact: Identifiable, Codable, Hashable {
         self.model = model
         self.audio = audio
     }
+
+    public static var sample: Artifact {
+        HeritageCatalog.artifacts[0]
+    }
 }
 
 // MARK: - Master Heritage Catalog Data (All 11 Artifacts & Bento Hotspots)
