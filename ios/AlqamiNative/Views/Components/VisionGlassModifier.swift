@@ -184,12 +184,23 @@ public extension View {
         self.modifier(AppleGlossyGlassModifier(cornerRadius: cornerRadius, tintOpacity: tintOpacity, rimOpacity: rimOpacity, shadowRadius: shadowRadius))
     }
 
-    func glossyPill(isHighlighted: Bool = false, accentColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)) -> some View {
-        self.modifier(AppleGlossyPillModifier(isHighlighted: isHighlighted, accentColor: accentColor))
+    func glossyPill(
+        isSelected: Bool = false,
+        isHighlighted: Bool = false,
+        activeColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039),
+        accentColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)
+    ) -> some View {
+        let color = activeColor != Color(red: 1.0, green: 0.839, blue: 0.039) ? activeColor : accentColor
+        return self.modifier(AppleGlossyPillModifier(isHighlighted: isSelected || isHighlighted, accentColor: color))
     }
 
-    func glossyCircle(size: CGFloat = 38, isHighlighted: Bool = false, accentColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)) -> some View {
-        self.modifier(AppleGlossyCircleModifier(size: size, isHighlighted: isHighlighted, accentColor: accentColor))
+    func glossyCircle(
+        size: CGFloat = 38,
+        isSelected: Bool = false,
+        isHighlighted: Bool = false,
+        accentColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)
+    ) -> some View {
+        self.modifier(AppleGlossyCircleModifier(size: size, isHighlighted: isSelected || isHighlighted, accentColor: accentColor))
     }
 
     func visionGlass(cornerRadius: CGFloat = 20, strokeOpacity: Double = 0.22, shadowRadius: CGFloat = 16) -> some View {

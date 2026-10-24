@@ -7,7 +7,7 @@ import MediaPlayer
 
 // MARK: - Real Hardware Telemetry & Spatial Gyroscope Manager (Zero Fake Data)
 @MainActor
-public final class RealHardwareMonitor: ObservableObject {
+public final class RealHardwareMonitor: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
     public static let shared = RealHardwareMonitor()
 
     // Live Hardware Readings
@@ -20,6 +20,10 @@ public final class RealHardwareMonitor: ObservableObject {
     @Published public var deviceRoll: CGFloat = 0
     @Published public var currentTimeText: String = ""
     @Published public var currentDateText: String = ""
+    @Published public var isSpeaking: Bool = false
+
+    public var currentTimeString: String { currentTimeText }
+    public var batteryPercentage: Int { batteryLevelPercent }
 
     private let motionManager = CMMotionManager()
     private let pathMonitor = NWPathMonitor()
@@ -27,7 +31,9 @@ public final class RealHardwareMonitor: ObservableObject {
     private var clockTimer: Timer?
     private let speechSynthesizer = AVSpeechSynthesizer()
 
-    private init() {
+    private override init() {
+        super.init()
+        speechSynthesizer.delegate = self
         setupBatteryMonitoring()
         setupNetworkMonitoring()
         setupMotionParallax()
@@ -42,15 +48,19 @@ public final class RealHardwareMonitor: ObservableObject {
             forName: UIDevice.batteryLevelDidChangeNotification,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in self?.updateBattery() }
+        ) { _ in
+            Task { @MainActor in
+                RealHardwareMonitor.shared.updateBattery()
+            }
         }
         NotificationCenter.default.addObserver(
             forName: UIDevice.batteryStateDidChangeNotification,
             object: nil,
             queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in self?.updateBattery() }
+        ) { _ in
+            Task { @MainActor in
+                RealHardwareMonitor.shared.updateBattery()
+            }
         }
     }
 
@@ -66,7 +76,7 @@ public final class RealHardwareMonitor: ObservableObject {
 
     // MARK: - 2. Real NWPathMonitor Wi-Fi / Cellular Connectivity
     private func setupNetworkMonitoring() {
-        pathMonitor.pathUpdateHandler = { [weak self] path in
+        pathMonitor.pathUpdateHandler = { path in
             let connected = (path.status == .satisfied)
             let iface: String
             if path.usesInterfaceType(.wifi) {
@@ -79,8 +89,8 @@ public final class RealHardwareMonitor: ObservableObject {
                 iface = connected ? "Online" : "Offline"
             }
             Task { @MainActor in
-                self?.isWiFiConnected = connected
-                self?.networkInterfaceText = iface
+                RealHardwareMonitor.shared.isWiFiConnected = connected
+                RealHardwareMonitor.shared.networkInterfaceText = iface
             }
         }
         pathMonitor.start(queue: monitorQueue)
@@ -90,12 +100,14 @@ public final class RealHardwareMonitor: ObservableObject {
     private func setupMotionParallax() {
         guard motionManager.isDeviceMotionAvailable else { return }
         motionManager.deviceMotionUpdateInterval = 1.0 / 60.0
-        motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
-            guard let self = self, let attitude = motion?.attitude else { return }
+        motionManager.startDeviceMotionUpdates(to: .main) { motion, _ in
+            guard let attitude = motion?.attitude else { return }
             let clampedRoll = max(-0.45, min(0.45, attitude.roll))
             let clampedPitch = max(-0.45, min(0.45, attitude.pitch - 0.6))
-            self.deviceRoll = CGFloat(clampedRoll * 28.0)
-            self.devicePitch = CGFloat(clampedPitch * 18.0)
+            Task { @MainActor in
+                RealHardwareMonitor.shared.deviceRoll = CGFloat(clampedRoll)
+                RealHardwareMonitor.shared.devicePitch = CGFloat(clampedPitch)
+            }
         }
     }
 
@@ -103,10 +115,10 @@ public final class RealHardwareMonitor: ObservableObject {
     private func setupClockAndAudio() {
         updateClock()
         systemVolume = AVAudioSession.sharedInstance().outputVolume
-        clockTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+        clockTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
             Task { @MainActor in
-                self?.updateClock()
-                self?.systemVolume = AVAudioSession.sharedInstance().outputVolume
+                RealHardwareMonitor.shared.updateClock()
+                RealHardwareMonitor.shared.systemVolume = AVAudioSession.sharedInstance().outputVolume
             }
         }
     }
@@ -126,6 +138,7 @@ public final class RealHardwareMonitor: ObservableObject {
     public func speakNarration(_ text: String, isArabic: Bool) {
         if speechSynthesizer.isSpeaking {
             speechSynthesizer.stopSpeaking(at: .immediate)
+            isSpeaking = false
             return
         }
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
@@ -134,6 +147,7 @@ public final class RealHardwareMonitor: ObservableObject {
         utterance.voice = AVSpeechSynthesisVoice(language: isArabic ? "ar-SA" : "en-US")
         utterance.rate = 0.47
         utterance.pitchMultiplier = 0.96
+        isSpeaking = true
         speechSynthesizer.speak(utterance)
     }
 
@@ -141,9 +155,22 @@ public final class RealHardwareMonitor: ObservableObject {
         if speechSynthesizer.isSpeaking {
             speechSynthesizer.stopSpeaking(at: .immediate)
         }
+        isSpeaking = false
     }
 
-    public var isSpeaking: Bool {
-        speechSynthesizer.isSpeaking
+    public func stopSpeaking() {
+        stopNarration()
+    }
+
+    nonisolated public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            RealHardwareMonitor.shared.isSpeaking = false
+        }
+    }
+
+    nonisolated public func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        Task { @MainActor in
+            RealHardwareMonitor.shared.isSpeaking = false
+        }
     }
 }
