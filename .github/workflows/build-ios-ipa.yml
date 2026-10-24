@@ -42,6 +42,7 @@ jobs:
       - name: Build iOS Application
         run: |
           cd ios
+          set -o pipefail
           xcodebuild clean build \
             -project AlqamiNative.xcodeproj \
             -scheme AlqamiNative \
@@ -50,7 +51,20 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" 2>&1 | tee xcodebuild.log
+
+      - name: Report and Commit Failure Log
+        if: failure()
+        run: |
+          cd ios
+          echo "=== XCODEBUILD COMPILATION ERRORS ==="
+          grep -C 3 "error:" xcodebuild.log || true
+          tail -n 120 xcodebuild.log > build_failure.log
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add build_failure.log
+          git commit -m "Capture build failure log [skip ci]" || true
+          git push origin main || true
 
       - name: Package IPA
         run: |

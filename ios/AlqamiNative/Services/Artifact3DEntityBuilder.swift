@@ -259,7 +259,7 @@ public final class Artifact3DEntityBuilder {
 }
 
 // MARK: - UIColor Hex Extension
-private extension UIColor {
+extension UIColor {
     convenience init?(hex: String) {
         var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
         hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
