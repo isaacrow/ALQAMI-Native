@@ -11,6 +11,7 @@ public struct BaghdadMapView: View {
     )
     
     @State private var selectedLandmark: BaghdadLandmark? = nil
+    @State private var inspectingAlephLandmark: BaghdadLandmark? = nil
     @State private var showEmergencySheet: Bool = false
     @State private var isAudioPlaying: Bool = false
     @State private var speechSynthesizer = AVSpeechSynthesizer()
@@ -116,6 +117,18 @@ public struct BaghdadMapView: View {
         .sheet(isPresented: $showEmergencySheet) {
             EmergencyModalView()
         }
+        .fullScreenCover(item: $inspectingAlephLandmark) { landmark in
+            Aleph3DGeospatialModalView(
+                landmark: landmark,
+                onClose: {
+                    inspectingAlephLandmark = nil
+                },
+                onLaunchAR: {
+                    inspectingAlephLandmark = nil
+                    onSelectLandmarkForAR(landmark)
+                }
+            )
+        }
     }
     
     // MARK: - Selected Landmark Card
@@ -159,6 +172,39 @@ public struct BaghdadMapView: View {
                 .foregroundColor(.white.opacity(0.88))
                 .lineLimit(3)
                 .lineSpacing(3)
+            
+            // Aleph 3D Geospatial Button (Powered by Belluxx/Aleph)
+            Button(action: {
+                SpatialSoundHelper.shared.playPlacementHaptic()
+                inspectingAlephLandmark = landmark
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "globe.europe.africa.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(Color(red: 0.0, green: 0.78, blue: 1.0))
+                    Text("استكشاف مجسم الأقمار الصناعية (Aleph 3D)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white)
+                    Spacer()
+                    Text("3D Mesh")
+                        .font(.system(size: 9.5, weight: .black, design: .monospaced))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color(red: 0.0, green: 0.78, blue: 1.0)))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(red: 0.0, green: 0.78, blue: 1.0).opacity(0.14))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color(red: 0.0, green: 0.78, blue: 1.0).opacity(0.4), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
             
             // Action Buttons (انطلق + عرض ثلاثي الأبعاد AR)
             HStack(spacing: 10) {
