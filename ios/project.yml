@@ -25,3 +25,10 @@ targets:
       INFOPLIST_FILE: AlqamiNative/Resources/Info.plist
       TARGETED_DEVICE_FAMILY: "1,2"
       ENABLE_BITCODE: NO
+    dependencies:
+      - sdk: MapKit.framework
+      - sdk: SceneKit.framework
+      - sdk: RealityKit.framework
+      - sdk: ARKit.framework
+      - sdk: AVFoundation.framework
+      - sdk: CoreMotion.framework

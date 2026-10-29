@@ -1,20 +1,61 @@
 import SwiftUI
 import CoreMotion
 
+// MARK: - App Navigation Tab (Exact 4 Modes from User Screenshots)
+// Tab 1: Tesla 3D Driving Perception (Image 1)
+// Tab 2: AR Scanner (LiDAR + RealityKit)
+// Tab 3: Baghdad Apple Maps Navigation (Image 2)
+// Tab 4: 3D Landmarks & Heritage Catalog (Image 3)
+public enum AppNavigationTab: String, CaseIterable {
+    case teslaRoad = "teslaRoad"
+    case arScanner = "arScanner"
+    case baghdadMap = "baghdadMap"
+    case landmarks = "landmarks"
+    
+    public func title(isArabic: Bool) -> String {
+        switch self {
+        case .teslaRoad:
+            return isArabic ? "تسلا 3D" : "Tesla 3D"
+        case .arScanner:
+            return isArabic ? "الماسح AR" : "AR Scanner"
+        case .baghdadMap:
+            return isArabic ? "الخريطة" : "Map"
+        case .landmarks:
+            return isArabic ? "المعالم والآثار" : "Landmarks"
+        }
+    }
+    
+    public var iconSystemName: String {
+        switch self {
+        case .teslaRoad:
+            return "car.fill"
+        case .arScanner:
+            return "qrcode.viewfinder"
+        case .baghdadMap:
+            return "map.fill"
+        case .landmarks:
+            return "sparkles"
+        }
+    }
+}
+
 // MARK: - Flagship Native iOS Experience (Full Power of iPhone 15 Pro Max & Liquid Glass)
 public struct SpatialRootView: View {
     @StateObject private var catalogViewModel = CatalogViewModel()
     @ObservedObject private var lighting = LightingManager.shared
     @ObservedObject private var hardware = RealHardwareMonitor.shared
 
-    // Navigation State
+    // Core 4-Mode Navigation State
+    @State private var activeAppTab: AppNavigationTab = .teslaRoad
+    
+    // Legacy / Modal Sub-views
     @State private var selectedArtifactForDetail: Artifact? = nil
     @State private var activeARArtifact: Artifact? = nil
-    @State private var activeTab: CatalogHomeView.OrnamentTab = .catalog
     @State private var showControlCenter: Bool = false
     @State private var showScanner: Bool = false
     @State private var showBentoRoom: Bool = false
     @State private var showDuoFoldShowcase: Bool = false
+    @State private var showHeritageCatalogSheet: Bool = false
 
     public init() {}
 
@@ -32,8 +73,41 @@ public struct SpatialRootView: View {
                     .padding(.top, 4)
                     .padding(.bottom, 6)
 
-                // Main Content View (Catalog, Details, or Duo-Fold)
+                // Main 4-Mode Content View
                 ZStack {
+                    switch activeAppTab {
+                    case .teslaRoad:
+                        TeslaRoadView()
+                            .transition(.opacity)
+                        
+                    case .arScanner:
+                        ARScannerTabView()
+                            .transition(.opacity)
+                        
+                    case .baghdadMap:
+                        BaghdadMapView(
+                            onSelectLandmarkForAR: { landmark in
+                                launchLandmarkInAR(landmark)
+                            },
+                            onStartNavigation: { landmark in
+                                startHighwayNavigation(to: landmark)
+                            }
+                        )
+                        .transition(.opacity)
+                        
+                    case .landmarks:
+                        LandmarksCatalogView(
+                            onSelectLandmarkForAR: { landmark in
+                                launchLandmarkInAR(landmark)
+                            },
+                            onStartNavigation: { landmark in
+                                startHighwayNavigation(to: landmark)
+                            }
+                        )
+                        .transition(.opacity)
+                    }
+
+                    // Detail View Overlay if an artifact was selected
                     if let detailArtifact = selectedArtifactForDetail {
                         ArtifactDetailView(
                             artifact: detailArtifact,
@@ -52,7 +126,11 @@ public struct SpatialRootView: View {
                             }
                         )
                         .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .trailing)))
-                    } else if showDuoFoldShowcase {
+                        .zIndex(20)
+                    }
+
+                    // Duo-Fold 3D Carousel Showcase
+                    if showDuoFoldShowcase {
                         DuoFoldShowcaseModalView(
                             artifacts: catalogViewModel.artifacts,
                             isArabic: catalogViewModel.isArabic,
@@ -69,33 +147,20 @@ public struct SpatialRootView: View {
                             }
                         )
                         .padding(.horizontal, 14)
-                    } else {
-                        CatalogHomeView(
-                            viewModel: catalogViewModel,
-                            activeOrnamentTab: activeTab,
-                            onSelectArtifact: { artifact in
-                                withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
-                                    selectedArtifactForDetail = artifact
-                                }
-                            },
-                            onLaunchAR: { artifact in
-                                activeARArtifact = artifact
-                            }
-                        )
-                        .environment(\.layoutDirection, catalogViewModel.isArabic ? .rightToLeft : .leftToRight)
+                        .zIndex(25)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                // Floating Liquid Glass Navigation Dock (Above Home Indicator)
+                // MARK: - 3. Floating 4-Tab Liquid Glass Navigation Dock (Matches Image 1, 2, 3)
                 if selectedArtifactForDetail == nil && !showDuoFoldShowcase {
                     floatingLiquidGlassDock
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 16)
                         .padding(.bottom, 6)
                 }
             }
 
-            // MARK: - 3. Studio & Hardware Control Center Overlay
+            // MARK: - 4. Studio & Hardware Control Center Overlay
             if showControlCenter {
                 ControlCenterView(
                     isArabic: catalogViewModel.isArabic,
@@ -145,6 +210,21 @@ public struct SpatialRootView: View {
                 },
                 onDismiss: {
                     showBentoRoom = false
+                }
+            )
+        }
+        // Antiquities / Manuscripts Catalog Modal
+        .sheet(isPresented: $showHeritageCatalogSheet) {
+            CatalogHomeView(
+                viewModel: catalogViewModel,
+                activeOrnamentTab: .catalog,
+                onSelectArtifact: { artifact in
+                    showHeritageCatalogSheet = false
+                    selectedArtifactForDetail = artifact
+                },
+                onLaunchAR: { artifact in
+                    showHeritageCatalogSheet = false
+                    activeARArtifact = artifact
                 }
             )
         }
@@ -262,7 +342,7 @@ public struct SpatialRootView: View {
             }
             .buttonStyle(.plain)
 
-            // Menu Options (Duo-Fold, Scanner, Room Bento, Language)
+            // Menu Options (Catalog, Duo-Fold, Scanner, Room Bento, Language)
             Menu {
                 Button(action: {
                     withAnimation { catalogViewModel.isArabic.toggle() }
@@ -270,6 +350,11 @@ public struct SpatialRootView: View {
                     Label(catalogViewModel.isArabic ? "Switch to English" : "التحويل للعربية", systemImage: "globe")
                 }
                 Divider()
+                Button(action: {
+                    showHeritageCatalogSheet = true
+                }) {
+                    Label(catalogViewModel.isArabic ? "المعرض التراثي والمخطوطات (11 مقتنى)" : "Heritage Artifacts Catalog", systemImage: "books.vertical")
+                }
                 Button(action: {
                     showScanner = true
                 }) {
@@ -301,88 +386,69 @@ public struct SpatialRootView: View {
         .environment(\.layoutDirection, .leftToRight)
     }
 
-    // MARK: - 3. Floating Liquid Glass Dock (Bottom Navigation Bar)
+    // MARK: - 3. Floating 4-Tab Liquid Glass Navigation Dock (Matches Image 1, 2, 3)
     private var floatingLiquidGlassDock: some View {
-        HStack(spacing: 8) {
-            dockTabButton(tab: .catalog, icon: "square.grid.2x2", labelAr: "المعرض", labelEn: "Catalog")
-            dockTabButton(tab: .search, icon: "magnifyingglass", labelAr: "البحث", labelEn: "Search")
-
-            // Center Primary AR World Button
-            Button(action: {
-                SpatialSoundHelper.shared.playPlacementHaptic()
-                activeARArtifact = catalogViewModel.heroArtifact
-            }) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color(red: 1.0, green: 0.839, blue: 0.039), Color(red: 0.95, green: 0.65, blue: 0.02)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 48, height: 48)
-                        .overlay(
-                            Circle()
-                                .strokeBorder(Color.white.opacity(0.8), lineWidth: 1.2)
-                        )
-                        .shadow(color: Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.45), radius: 10, y: 4)
-
-                    Image(systemName: "arkit")
-                        .font(.system(size: 20, weight: .heavy))
-                        .foregroundColor(.black)
-                }
-            }
-            .buttonStyle(.plain)
-            .offset(y: -4)
-
-            dockTabButton(tab: .favorites, icon: "heart", labelAr: "المفضلة", labelEn: "Favorites", badgeCount: catalogViewModel.favoriteIds.count)
-            dockTabButton(tab: .bag, icon: "bag", labelAr: "الخزانة", labelEn: "Vault")
+        HStack(spacing: 4) {
+            dockTabButton(tab: .teslaRoad)
+            dockTabButton(tab: .arScanner)
+            dockTabButton(tab: .baghdadMap)
+            dockTabButton(tab: .landmarks)
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .glossyGlass(cornerRadius: 32, tintOpacity: 0.28, shadowRadius: 22)
     }
 
-    private func dockTabButton(
-        tab: CatalogHomeView.OrnamentTab,
-        icon: String,
-        labelAr: String,
-        labelEn: String,
-        badgeCount: Int = 0
-    ) -> some View {
-        let isSelected = activeTab == tab
+    private func dockTabButton(tab: AppNavigationTab) -> some View {
+        let isSelected = activeAppTab == tab
         return Button(action: {
             SpatialSoundHelper.shared.playSnapHaptic()
             withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) {
-                activeTab = tab
+                activeAppTab = tab
             }
         }) {
-            VStack(spacing: 3) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: isSelected && icon == "heart" ? "heart.fill" : icon)
-                        .font(.system(size: 15, weight: isSelected ? .bold : .medium))
-                        .foregroundColor(isSelected ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white.opacity(0.65))
-                        .frame(width: 38, height: 28)
+            VStack(spacing: 4) {
+                Image(systemName: tab.iconSystemName)
+                    .font(.system(size: 16, weight: isSelected ? .black : .semibold))
+                    .foregroundColor(isSelected ? Color(red: 1.0, green: 0.839, blue: 0.039) : .white.opacity(0.65))
+                    .frame(height: 24)
 
-                    if badgeCount > 0 {
-                        Text("\(badgeCount)")
-                            .font(.system(size: 8.5, weight: .heavy, design: .monospaced))
-                            .foregroundColor(.black)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 1)
-                            .background(Capsule().fill(Color(red: 1.0, green: 0.839, blue: 0.039)))
-                            .offset(x: 4, y: -2)
-                    }
-                }
-
-                Text(catalogViewModel.isArabic ? labelAr : labelEn)
-                    .font(.system(size: 9.5, weight: isSelected ? .bold : .medium))
+                Text(tab.title(isArabic: catalogViewModel.isArabic))
+                    .font(.system(size: 10, weight: isSelected ? .heavy : .medium))
                     .foregroundColor(isSelected ? .white : .white.opacity(0.55))
+                    .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
+            .background(
+                Group {
+                    if isSelected {
+                        Capsule()
+                            .fill(Color.white.opacity(0.08))
+                    }
+                }
+            )
         }
         .buttonStyle(.plain)
+    }
+    
+    // MARK: - Action Helpers
+    private func startHighwayNavigation(to landmark: BaghdadLandmark) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            activeAppTab = .teslaRoad
+        }
+        SpatialSoundHelper.shared.playPlacementHaptic()
+    }
+    
+    private func launchLandmarkInAR(_ landmark: BaghdadLandmark) {
+        // Find matching artifact or use hero artifact
+        let modelId = landmark.modelIdentifier ?? ""
+        if let match = catalogViewModel.artifacts.first(where: { $0.id.contains(modelId) || $0.model.usdzFile.contains(modelId) }) {
+            activeARArtifact = match
+        } else {
+            activeARArtifact = catalogViewModel.heroArtifact
+        }
+        SpatialSoundHelper.shared.playPlacementHaptic()
     }
 }
 
@@ -449,7 +515,7 @@ public struct DuoFoldShowcaseModalView: View {
 
                     Text("\(currentIndex + 1) / \(artifacts.count)")
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(.white)
 
                     Button(action: { flipPage(delta: 1) }) {
                         Label(isArabic ? "التالي" : "Next", systemImage: "chevron.right")
@@ -463,91 +529,82 @@ public struct DuoFoldShowcaseModalView: View {
                 }
             }
             .padding(16)
-            .glossyGlass(cornerRadius: 28, tintOpacity: 0.26)
+            .glossyGlass(cornerRadius: 24, tintOpacity: 0.28, shadowRadius: 22)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
     private func duoFold3DLeaf(current: Artifact) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color(red: 0.796, green: 0.788, blue: 0.773)) // #CBC9C5
-
             Artifact3DTurntableSceneView(
                 artifact: current,
-                autoRotate: true,
-                allowsCameraControl: true,
-                cameraDistance: 0.65
+                enableGestures: true
             )
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+            VStack {
+                HStack {
+                    Text(current.category.title(isArabic: isArabic))
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color(red: 1.0, green: 0.839, blue: 0.039)))
+                    Spacer()
+                }
+                Spacer()
+            }
+            .padding(10)
         }
-        .rotation3DEffect(.degrees(foldRotation), axis: (x: 0, y: 1, z: 0), anchor: .trailing)
+        .glossyGlass(cornerRadius: 18)
     }
 
     private func duoFoldTextLeaf(current: Artifact) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(current.itemCode)
-                .font(.system(size: 10.5, weight: .bold, design: .monospaced))
-                .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
-
+        VStack(alignment: isArabic ? .trailing : .leading, spacing: 8) {
             Text(current.title.text(isArabic: isArabic))
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundColor(.white)
-                .lineLimit(1)
-
-            Text(current.subtitle.text(isArabic: isArabic))
-                .font(.system(size: 12))
-                .foregroundColor(.white.opacity(0.68))
-                .lineLimit(1)
+                .lineLimit(2)
 
             Text(current.description.text(isArabic: isArabic))
-                .font(.system(size: 12))
-                .foregroundColor(.white.opacity(0.85))
-                .lineLimit(3)
+                .font(.system(size: 11.5))
+                .foregroundColor(.white.opacity(0.8))
+                .lineLimit(4)
+                .lineSpacing(3)
 
-            Spacer(minLength: 4)
+            Spacer()
 
             HStack(spacing: 8) {
                 Button(action: { onLaunchAR(current) }) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "arkit")
-                        Text(isArabic ? "معاينة في المكان (AR)" : "Place in AR")
-                    }
-                    .font(.system(size: 11.5, weight: .bold))
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .glossyPill(isSelected: true)
+                    Label(isArabic ? "واقع معزز" : "AR Mode", systemImage: "arkit")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .glossyPill(isSelected: true)
                 }
                 .buttonStyle(.plain)
 
                 Button(action: { onSelectArtifact(current) }) {
-                    Text(isArabic ? "التفاصيل الكاملة" : "Full Details")
-                        .font(.system(size: 11.5, weight: .bold))
+                    Label(isArabic ? "التفاصيل" : "Details", systemImage: "info.circle")
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
                         .glossyPill()
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .glossyGlass(cornerRadius: 20, tintOpacity: 0.18)
-        .rotation3DEffect(.degrees(-foldRotation), axis: (x: 0, y: 1, z: 0), anchor: .leading)
+        .padding(12)
+        .glossyGlass(cornerRadius: 18)
     }
 
     private func flipPage(delta: Int) {
-        guard !artifacts.isEmpty else { return }
         SpatialSoundHelper.shared.playSnapHaptic()
-        withAnimation(.easeInOut(duration: 0.18)) {
-            foldRotation = delta > 0 ? 35 : -35
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
-            currentIndex = (currentIndex + delta + artifacts.count) % artifacts.count
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
-                foldRotation = 0
-            }
+        let count = max(1, artifacts.count)
+        withAnimation(.easeInOut(duration: 0.32)) {
+            currentIndex = (currentIndex + delta + count) % count
         }
     }
 }

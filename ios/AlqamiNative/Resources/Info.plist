@@ -26,6 +26,8 @@
     <string>يتطلب تطبيق علقمي الوصول إلى الكاميرا لمسح الأسطح وتتبع الفراغ المكاني لعرض القطع الأثرية والمخطوطات في الواقع المعزز بدقة عالية.</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>يتطلب تطبيق علقمي الإذن لحفظ صور المقتنيات بالواقع المعزز في ألبوم الصور الخاص بك.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>يتطلب تطبيق علقمي الوصول إلى موقعك الجغرافي لعرض موقعك بدقة على خريطة بغداد وملاحة المعالم الأثرية والتاريخية.</string>
     <key>UIRequiredDeviceCapabilities</key>
     <array>
         <string>arm64</string>
