@@ -12,6 +12,7 @@
 		056A0DCC489C46D5F11CDBF2 /* LightingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B169AF4EF7047DFEB6383C /* LightingManager.swift */; };
 		0648DE18BC1164BDF44CE03C /* custom_room_bg.png in Resources */ = {isa = PBXBuildFile; fileRef = B8A4BF81940D7F923A4CFBC9 /* custom_room_bg.png */; };
 		06933B7FBA7EA50390601D26 /* nahj_al_balagha.usdz in Resources */ = {isa = PBXBuildFile; fileRef = B3DD32B78D39A32035569209 /* nahj_al_balagha.usdz */; };
+		07F1708EB10CC1D8B7FCD4DA /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD741CCDA242DFAE135A4003 /* MapKit.framework */; };
 		0953EB407A0D4927551A26DA /* SpatialSoundHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33B5CA2A6819D6CBABDD2C90 /* SpatialSoundHelper.swift */; };
 		0B155452C841B489C9AD09C2 /* CatalogHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C703821A1C6F10930AF9EA0 /* CatalogHomeView.swift */; };
 		0BF1A29BDA0ED14608F4B981 /* VisionGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E6B20DBEA47BFEBF7E4404 /* VisionGlassModifier.swift */; };
@@ -20,12 +21,16 @@
 		189F06216D4D047AAAD91285 /* hand.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 529EA0DDCA13DFC5ED31055C /* hand.jpg */; };
 		281FA59BBC4D184EB1186E6C /* stela_of_hammurabi_replica.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 5D3C6563387276C26F33D2A8 /* stela_of_hammurabi_replica.usdz */; };
 		299F5C467BD6A6CEE0FFFA86 /* alqami_artifact.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 60F98D10D334E9D1A637CAB9 /* alqami_artifact.jpg */; };
+		2A2FC3C683731E453BEAAB22 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 50D88A55D1392A5B387445E5 /* ARKit.framework */; };
 		2F23717FDC4C9CA813077A50 /* bowl.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 6E087CD7A056B2515E93A070 /* bowl.usdz */; };
 		327E09622495A37ACAA48EBF /* old-babylonian_cuneiform_tablet_s264.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 47CA3D41BF2F14EFECBD7DF5 /* old-babylonian_cuneiform_tablet_s264.usdz */; };
 		335A8578797387454E29ACE1 /* model-Old_Islamic_Helmet.png in Resources */ = {isa = PBXBuildFile; fileRef = 7EA6033CDE43BFF3CFB62268 /* model-Old_Islamic_Helmet.png */; };
+		34D47F6F0605188CA4EB3908 /* BaghdadMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62795F142A661B14B39FE29B /* BaghdadMapView.swift */; };
+		35ABFC274D8F93113BC5CF5D /* ARScannerTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918119CDC9F6AF5C593462AD /* ARScannerTabView.swift */; };
 		36FC7466BE920C7185187DD4 /* Artifact3DTurntableSceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18035B2E9B2B74861F99D36F /* Artifact3DTurntableSceneView.swift */; };
 		37FE5C03CF11C128F1F614CC /* model-meshy-model.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B5093C5D0830A70D8C8633B /* model-meshy-model.png */; };
 		39E90B6E1517F1A2A620ED87 /* Old_Islamic_Helmet.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 6AC91F53FC5C563E03AB2F53 /* Old_Islamic_Helmet.usdz */; };
+		4194FC8D8038E347C055062C /* SceneKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FC704AF2B9A7A4F137F97C9B /* SceneKit.framework */; };
 		42B8AEA38EC24176051F5B7D /* meshy-model.usdz in Resources */ = {isa = PBXBuildFile; fileRef = F2E79BBBCAD1223904C523CC /* meshy-model.usdz */; };
 		43011E6F737824D2E8FB53DF /* praha_front.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 4FC02C07672AFBAA00801E31 /* praha_front.jpg */; };
 		5405C1D066A466D1D6475E9E /* RealHardwareMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A636C38A07CF7AF8DAF646D /* RealHardwareMonitor.swift */; };
@@ -33,21 +38,26 @@
 		57B3A503000337AF0116F7D0 /* manuscript.jpg in Resources */ = {isa = PBXBuildFile; fileRef = F4C475D4891BAA0781A91995 /* manuscript.jpg */; };
 		5EBC431870BE80715A8426D5 /* Artifact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293DA8FA22C916DDDFC306F1 /* Artifact.swift */; };
 		614125EA9DE399763966A6F8 /* AlqamiNativeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27FF2FD9FB1BB2D8287D41D7 /* AlqamiNativeApp.swift */; };
+		62A8CC3D69DF4D773AE7250C /* BaghdadLandmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59350F76AFE812AD13361BB /* BaghdadLandmark.swift */; };
 		64E387BD826FF6B3BE2F6102 /* praha_top.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7DA259715F9FCA45A1BB328A /* praha_top.jpg */; };
 		6586C0A616138A8C07FABC40 /* alqami-logo.png in Resources */ = {isa = PBXBuildFile; fileRef = D1D4B063560349113B3644AF /* alqami-logo.png */; };
 		661E291E79CAB6E5BDCAF7F2 /* model-old-babylonian_cuneiform_tablet_s264.png in Resources */ = {isa = PBXBuildFile; fileRef = 8BBBF785D8590A9974AFB379 /* model-old-babylonian_cuneiform_tablet_s264.png */; };
+		6C8E23BC4187191B5A6F5F96 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4349349970EC69E9D6E0FE96 /* CoreMotion.framework */; };
+		6D03E1974A284D21A98AB9DC /* LandmarksCatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48364C64CEE0B8EC3190FD5E /* LandmarksCatalogView.swift */; };
 		7A9CA9F2C1423CB82120398E /* saqakhane_bowl.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 02FE3B973B9753563D992F4E /* saqakhane_bowl.usdz */; };
 		814681C9950898AB20911BCB /* model-saqakhane_bowl.png in Resources */ = {isa = PBXBuildFile; fileRef = 79E1755848AC45B0C7C07BB7 /* model-saqakhane_bowl.png */; };
 		8EE674F8A3678F74FBE6D98B /* CatalogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C846F7C7CB6CB9A3584B2B2 /* CatalogViewModel.swift */; };
 		8F126EF836406A3AD82107CD /* model-model.png in Resources */ = {isa = PBXBuildFile; fileRef = EE7C409770D76C04E13569C2 /* model-model.png */; };
 		92690276656A7939CB7064C4 /* CulturalVisionScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC595306CC91E8D2F55E3CB /* CulturalVisionScannerView.swift */; };
 		92B3960FFF1B94AD02109C95 /* ARViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 088CBCE32F1BC336441E1B7B /* ARViewModel.swift */; };
+		96C59825EB4953DFC9280982 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED2B8E6A58E50CFE06B1A968 /* AVFoundation.framework */; };
 		9A2AA8C873C81D8DD0F6BBD3 /* RoomBentoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 475C5A96F69A467E0CAEE719 /* RoomBentoView.swift */; };
 		9C6B75053F20C026D2A13DC1 /* catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = 1D25A0BB6EB69C91CA6DB5C1 /* catalog.json */; };
 		A0BFB5D2FE4BD4B35039F90E /* CatalogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E469F77C2A0EB9F715C1D32 /* CatalogRepository.swift */; };
 		A1ECEDA7CF9426AD8FF823E0 /* model-babylonian_map_of_the_world_tablet_-_imago_mundi.png in Resources */ = {isa = PBXBuildFile; fileRef = C119270D604639792BEE6C08 /* model-babylonian_map_of_the_world_tablet_-_imago_mundi.png */; };
 		A60E11173A167C3B3DBCEF88 /* ArtifactDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73BD015136D11D1842354A23 /* ArtifactDetailView.swift */; };
 		A66D89F017378B00F1295DAF /* babylonian_map_of_the_world_tablet_-_imago_mundi.usdz in Resources */ = {isa = PBXBuildFile; fileRef = F83F00DCB8647EA342228521 /* babylonian_map_of_the_world_tablet_-_imago_mundi.usdz */; };
+		AB6E269EC2162E5409601983 /* TeslaRoadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AD76EC26D45BE7E4516BD9 /* TeslaRoadView.swift */; };
 		AF5D42DEBBFD3D97594F489F /* ARControlOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7393513FF35C0C55FB9AED96 /* ARControlOverlay.swift */; };
 		B328A431E7A7B5C9A3CF3907 /* RealityComposerSceneLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = B43647C9738F3903022F051B /* RealityComposerSceneLoader.swift */; };
 		B3AC06A38BE17DF7AD28425E /* praha_back.jpg in Resources */ = {isa = PBXBuildFile; fileRef = FA9AEA1DF51B645CC3331E52 /* praha_back.jpg */; };
@@ -65,6 +75,7 @@
 		E91ABDFC4037433953D4E811 /* model.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 40B2EBFD9BD375F4145F4DA7 /* model.usdz */; };
 		EE4429D8895E0DFED0EAF973 /* praha_side2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 43D38150B86D341BF75762B5 /* praha_side2.jpg */; };
 		F4917AC9682781FF05E3CA38 /* model-bowl.png in Resources */ = {isa = PBXBuildFile; fileRef = 347D93535BCA25E288C7D71C /* model-bowl.png */; };
+		F7DE8A1126CBF5FC44166E6D /* RealityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4EA66896E6F1FCBA65860AC /* RealityKit.framework */; };
 		FD09CC68CE742AC2D8B6D652 /* model-nahj_al_balagha.png in Resources */ = {isa = PBXBuildFile; fileRef = A318BBA7620EDED38EDD1268 /* model-nahj_al_balagha.png */; };
 /* End PBXBuildFile section */
 
@@ -85,17 +96,22 @@
 		361DD4EFBC9018266E99901C /* kufic.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = kufic.jpg; sourceTree = "<group>"; };
 		3C703821A1C6F10930AF9EA0 /* CatalogHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogHomeView.swift; sourceTree = "<group>"; };
 		40B2EBFD9BD375F4145F4DA7 /* model.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = model.usdz; sourceTree = "<group>"; };
+		4349349970EC69E9D6E0FE96 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		4361872E55C53DC872EE47E1 /* prayer_niche_mihrab.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = prayer_niche_mihrab.usdz; sourceTree = "<group>"; };
 		43D38150B86D341BF75762B5 /* praha_side2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = praha_side2.jpg; sourceTree = "<group>"; };
 		47500F56DEDF2A924985BCE1 /* Zulfiqar_Sword.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = Zulfiqar_Sword.usdz; sourceTree = "<group>"; };
 		475C5A96F69A467E0CAEE719 /* RoomBentoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomBentoView.swift; sourceTree = "<group>"; };
 		47CA3D41BF2F14EFECBD7DF5 /* old-babylonian_cuneiform_tablet_s264.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "old-babylonian_cuneiform_tablet_s264.usdz"; sourceTree = "<group>"; };
+		48364C64CEE0B8EC3190FD5E /* LandmarksCatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandmarksCatalogView.swift; sourceTree = "<group>"; };
 		4FC02C07672AFBAA00801E31 /* praha_front.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = praha_front.jpg; sourceTree = "<group>"; };
+		50D88A55D1392A5B387445E5 /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
 		529EA0DDCA13DFC5ED31055C /* hand.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = hand.jpg; sourceTree = "<group>"; };
+		54AD76EC26D45BE7E4516BD9 /* TeslaRoadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeslaRoadView.swift; sourceTree = "<group>"; };
 		56274B3FEF904B396480F67B /* RealityKitARView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityKitARView.swift; sourceTree = "<group>"; };
 		5B0AABABC6F1ED500A5F67E0 /* ControlCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlCenterView.swift; sourceTree = "<group>"; };
 		5D3C6563387276C26F33D2A8 /* stela_of_hammurabi_replica.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = stela_of_hammurabi_replica.usdz; sourceTree = "<group>"; };
 		60F98D10D334E9D1A637CAB9 /* alqami_artifact.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = alqami_artifact.jpg; sourceTree = "<group>"; };
+		62795F142A661B14B39FE29B /* BaghdadMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaghdadMapView.swift; sourceTree = "<group>"; };
 		6AC91F53FC5C563E03AB2F53 /* Old_Islamic_Helmet.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = Old_Islamic_Helmet.usdz; sourceTree = "<group>"; };
 		6DD1B547998CC4638E253D68 /* SpatialRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialRootView.swift; sourceTree = "<group>"; };
 		6E087CD7A056B2515E93A070 /* bowl.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = bowl.usdz; sourceTree = "<group>"; };
@@ -109,6 +125,7 @@
 		7EA6033CDE43BFF3CFB62268 /* model-Old_Islamic_Helmet.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-Old_Islamic_Helmet.png"; sourceTree = "<group>"; };
 		86E6B20DBEA47BFEBF7E4404 /* VisionGlassModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionGlassModifier.swift; sourceTree = "<group>"; };
 		8BBBF785D8590A9974AFB379 /* model-old-babylonian_cuneiform_tablet_s264.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-old-babylonian_cuneiform_tablet_s264.png"; sourceTree = "<group>"; };
+		918119CDC9F6AF5C593462AD /* ARScannerTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARScannerTabView.swift; sourceTree = "<group>"; };
 		9C846F7C7CB6CB9A3584B2B2 /* CatalogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogViewModel.swift; sourceTree = "<group>"; };
 		A318BBA7620EDED38EDD1268 /* model-nahj_al_balagha.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-nahj_al_balagha.png"; sourceTree = "<group>"; };
 		A64912B6823D167319A2D826 /* Artifact3DEntityBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artifact3DEntityBuilder.swift; sourceTree = "<group>"; };
@@ -116,26 +133,48 @@
 		B3DD32B78D39A32035569209 /* nahj_al_balagha.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = nahj_al_balagha.usdz; sourceTree = "<group>"; };
 		B43647C9738F3903022F051B /* RealityComposerSceneLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealityComposerSceneLoader.swift; sourceTree = "<group>"; };
 		B5458F321E13C2826CCAB97A /* AlqamiNative.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AlqamiNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B59350F76AFE812AD13361BB /* BaghdadLandmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaghdadLandmark.swift; sourceTree = "<group>"; };
 		B8A4BF81940D7F923A4CFBC9 /* custom_room_bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = custom_room_bg.png; sourceTree = "<group>"; };
+		BD741CCDA242DFAE135A4003 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		C119270D604639792BEE6C08 /* model-babylonian_map_of_the_world_tablet_-_imago_mundi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-babylonian_map_of_the_world_tablet_-_imago_mundi.png"; sourceTree = "<group>"; };
 		C597F7796ECEF350DC92BB2A /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		D1D4B063560349113B3644AF /* alqami-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "alqami-logo.png"; sourceTree = "<group>"; };
 		D4B169AF4EF7047DFEB6383C /* LightingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightingManager.swift; sourceTree = "<group>"; };
 		D5850150941C902D0251317C /* model-stela_of_hammurabi_replica.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-stela_of_hammurabi_replica.png"; sourceTree = "<group>"; };
 		E1A08715E6429C8B5611BDB9 /* quran.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = quran.jpg; sourceTree = "<group>"; };
+		ED2B8E6A58E50CFE06B1A968 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		EE7C409770D76C04E13569C2 /* model-model.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-model.png"; sourceTree = "<group>"; };
 		F2E79BBBCAD1223904C523CC /* meshy-model.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "meshy-model.usdz"; sourceTree = "<group>"; };
 		F4C475D4891BAA0781A91995 /* manuscript.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = manuscript.jpg; sourceTree = "<group>"; };
+		F4EA66896E6F1FCBA65860AC /* RealityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealityKit.framework; path = System/Library/Frameworks/RealityKit.framework; sourceTree = SDKROOT; };
 		F83F00DCB8647EA342228521 /* babylonian_map_of_the_world_tablet_-_imago_mundi.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "babylonian_map_of_the_world_tablet_-_imago_mundi.usdz"; sourceTree = "<group>"; };
 		FA8A0544C3E1EBF33CEAD7A1 /* ArtifactCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactCardView.swift; sourceTree = "<group>"; };
 		FA9AEA1DF51B645CC3331E52 /* praha_back.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = praha_back.jpg; sourceTree = "<group>"; };
+		FC704AF2B9A7A4F137F97C9B /* SceneKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SceneKit.framework; path = System/Library/Frameworks/SceneKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		EE4AF6E32126FEDE2181AA9B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				07F1708EB10CC1D8B7FCD4DA /* MapKit.framework in Frameworks */,
+				4194FC8D8038E347C055062C /* SceneKit.framework in Frameworks */,
+				F7DE8A1126CBF5FC44166E6D /* RealityKit.framework in Frameworks */,
+				2A2FC3C683731E453BEAAB22 /* ARKit.framework in Frameworks */,
+				96C59825EB4953DFC9280982 /* AVFoundation.framework in Frameworks */,
+				6C8E23BC4187191B5A6F5F96 /* CoreMotion.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		03600D0B04E9E976BCD4E861 /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				293DA8FA22C916DDDFC306F1 /* Artifact.swift */,
+				B59350F76AFE812AD13361BB /* BaghdadLandmark.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -152,6 +191,7 @@
 		18F1D5A3A92C48A2F480ABAF /* Scanner */ = {
 			isa = PBXGroup;
 			children = (
+				918119CDC9F6AF5C593462AD /* ARScannerTabView.swift */,
 				2DC595306CC91E8D2F55E3CB /* CulturalVisionScannerView.swift */,
 			);
 			path = Scanner;
@@ -165,6 +205,14 @@
 				AD4B4BD491F606A063D66E7A /* Models */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		5714C9A573D20F037003C56B /* Tesla */ = {
+			isa = PBXGroup;
+			children = (
+				54AD76EC26D45BE7E4516BD9 /* TeslaRoadView.swift */,
+			);
+			path = Tesla;
 			sourceTree = "<group>";
 		};
 		59AC9FF68DA9555C130BA141 /* AR */ = {
@@ -188,6 +236,7 @@
 			isa = PBXGroup;
 			children = (
 				995BEDAB93CBE6225D23A08C /* AlqamiNative */,
+				FFB6816AD0324B68B2CE4EF1 /* Frameworks */,
 				72A8D126DA3C4C1736974D61 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -211,6 +260,14 @@
 				B43647C9738F3903022F051B /* RealityComposerSceneLoader.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		84C3E176198FB939E52764BB /* Landmarks */ = {
+			isa = PBXGroup;
+			children = (
+				48364C64CEE0B8EC3190FD5E /* LandmarksCatalogView.swift */,
+			);
+			path = Landmarks;
 			sourceTree = "<group>";
 		};
 		868ED39D8E3358BEAAF9CA0B /* Catalog */ = {
@@ -312,6 +369,14 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
+		E1DE57934A59A1A949BA05C2 /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				62795F142A661B14B39FE29B /* BaghdadMapView.swift */,
+			);
+			path = Map;
+			sourceTree = "<group>";
+		};
 		E35F662ACA9D9216FBE63E8A /* Bento */ = {
 			isa = PBXGroup;
 			children = (
@@ -328,10 +393,26 @@
 				868ED39D8E3358BEAAF9CA0B /* Catalog */,
 				D9F17BDBD11154231366A965 /* Components */,
 				AA1C96C16F23501A0F582999 /* ControlCenter */,
+				84C3E176198FB939E52764BB /* Landmarks */,
+				E1DE57934A59A1A949BA05C2 /* Map */,
 				18F1D5A3A92C48A2F480ABAF /* Scanner */,
 				C44A73A9E3DE0A52DA3EDFFD /* Shell */,
+				5714C9A573D20F037003C56B /* Tesla */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		FFB6816AD0324B68B2CE4EF1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				50D88A55D1392A5B387445E5 /* ARKit.framework */,
+				ED2B8E6A58E50CFE06B1A968 /* AVFoundation.framework */,
+				4349349970EC69E9D6E0FE96 /* CoreMotion.framework */,
+				BD741CCDA242DFAE135A4003 /* MapKit.framework */,
+				F4EA66896E6F1FCBA65860AC /* RealityKit.framework */,
+				FC704AF2B9A7A4F137F97C9B /* SceneKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -343,6 +424,7 @@
 			buildPhases = (
 				51B2EB7940577ED9393372E2 /* Sources */,
 				8997C009FE3C1E2C9E33324F /* Resources */,
+				EE4AF6E32126FEDE2181AA9B /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -438,6 +520,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AF5D42DEBBFD3D97594F489F /* ARControlOverlay.swift in Sources */,
+				35ABFC274D8F93113BC5CF5D /* ARScannerTabView.swift in Sources */,
 				D1E07BFC4712BD3D28D38732 /* ARSessionManager.swift in Sources */,
 				92B3960FFF1B94AD02109C95 /* ARViewModel.swift in Sources */,
 				614125EA9DE399763966A6F8 /* AlqamiNativeApp.swift in Sources */,
@@ -446,11 +529,14 @@
 				36FC7466BE920C7185187DD4 /* Artifact3DTurntableSceneView.swift in Sources */,
 				C2AFED8D893F7F6B9B907B1F /* ArtifactCardView.swift in Sources */,
 				A60E11173A167C3B3DBCEF88 /* ArtifactDetailView.swift in Sources */,
+				62A8CC3D69DF4D773AE7250C /* BaghdadLandmark.swift in Sources */,
+				34D47F6F0605188CA4EB3908 /* BaghdadMapView.swift in Sources */,
 				0B155452C841B489C9AD09C2 /* CatalogHomeView.swift in Sources */,
 				A0BFB5D2FE4BD4B35039F90E /* CatalogRepository.swift in Sources */,
 				8EE674F8A3678F74FBE6D98B /* CatalogViewModel.swift in Sources */,
 				B68FEBC8693D3D7139197F9F /* ControlCenterView.swift in Sources */,
 				92690276656A7939CB7064C4 /* CulturalVisionScannerView.swift in Sources */,
+				6D03E1974A284D21A98AB9DC /* LandmarksCatalogView.swift in Sources */,
 				056A0DCC489C46D5F11CDBF2 /* LightingManager.swift in Sources */,
 				5405C1D066A466D1D6475E9E /* RealHardwareMonitor.swift in Sources */,
 				B328A431E7A7B5C9A3CF3907 /* RealityComposerSceneLoader.swift in Sources */,
@@ -458,6 +544,7 @@
 				9A2AA8C873C81D8DD0F6BBD3 /* RoomBentoView.swift in Sources */,
 				04C162B445D427D91DB6D54D /* SpatialRootView.swift in Sources */,
 				0953EB407A0D4927551A26DA /* SpatialSoundHelper.swift in Sources */,
+				AB6E269EC2162E5409601983 /* TeslaRoadView.swift in Sources */,
 				0BF1A29BDA0ED14608F4B981 /* VisionGlassModifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
