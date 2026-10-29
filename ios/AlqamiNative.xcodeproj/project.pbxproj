@@ -17,11 +17,14 @@
 		0B155452C841B489C9AD09C2 /* CatalogHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C703821A1C6F10930AF9EA0 /* CatalogHomeView.swift */; };
 		0BF1A29BDA0ED14608F4B981 /* VisionGlassModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E6B20DBEA47BFEBF7E4404 /* VisionGlassModifier.swift */; };
 		0F86EEB6F2A28DCE17F82877 /* praha_side1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7A3B51EDC517C2DA489376B9 /* praha_side1.jpg */; };
+		178C0C96C16BB57609CD02AC /* tahrir_square_aleph_mesh.glb in Resources */ = {isa = PBXBuildFile; fileRef = C4269D0E499C634418F4E68D /* tahrir_square_aleph_mesh.glb */; };
 		1888833196625EA0CE916479 /* Zulfiqar_Sword.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 47500F56DEDF2A924985BCE1 /* Zulfiqar_Sword.usdz */; };
 		189F06216D4D047AAAD91285 /* hand.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 529EA0DDCA13DFC5ED31055C /* hand.jpg */; };
 		281FA59BBC4D184EB1186E6C /* stela_of_hammurabi_replica.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 5D3C6563387276C26F33D2A8 /* stela_of_hammurabi_replica.usdz */; };
 		299F5C467BD6A6CEE0FFFA86 /* alqami_artifact.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 60F98D10D334E9D1A637CAB9 /* alqami_artifact.jpg */; };
+		2A23817585E6AA15A9BA77C9 /* tahrir_square_satellite.png in Resources */ = {isa = PBXBuildFile; fileRef = 0C80D439B3356C25C1705E63 /* tahrir_square_satellite.png */; };
 		2A2FC3C683731E453BEAAB22 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 50D88A55D1392A5B387445E5 /* ARKit.framework */; };
+		2D523F9BDC9C054F4AFFD45E /* Aleph3DGeospatialModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F721E4C3AFF242483E14C234 /* Aleph3DGeospatialModalView.swift */; };
 		2F23717FDC4C9CA813077A50 /* bowl.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 6E087CD7A056B2515E93A070 /* bowl.usdz */; };
 		327E09622495A37ACAA48EBF /* old-babylonian_cuneiform_tablet_s264.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 47CA3D41BF2F14EFECBD7DF5 /* old-babylonian_cuneiform_tablet_s264.usdz */; };
 		335A8578797387454E29ACE1 /* model-Old_Islamic_Helmet.png in Resources */ = {isa = PBXBuildFile; fileRef = 7EA6033CDE43BFF3CFB62268 /* model-Old_Islamic_Helmet.png */; };
@@ -46,6 +49,7 @@
 		6D03E1974A284D21A98AB9DC /* LandmarksCatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48364C64CEE0B8EC3190FD5E /* LandmarksCatalogView.swift */; };
 		7A9CA9F2C1423CB82120398E /* saqakhane_bowl.usdz in Resources */ = {isa = PBXBuildFile; fileRef = 02FE3B973B9753563D992F4E /* saqakhane_bowl.usdz */; };
 		814681C9950898AB20911BCB /* model-saqakhane_bowl.png in Resources */ = {isa = PBXBuildFile; fileRef = 79E1755848AC45B0C7C07BB7 /* model-saqakhane_bowl.png */; };
+		8431823782BCE199ED044821 /* al_shaheed_satellite.png in Resources */ = {isa = PBXBuildFile; fileRef = 4309496C0BD0B8188CCDB407 /* al_shaheed_satellite.png */; };
 		8EE674F8A3678F74FBE6D98B /* CatalogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C846F7C7CB6CB9A3584B2B2 /* CatalogViewModel.swift */; };
 		8F126EF836406A3AD82107CD /* model-model.png in Resources */ = {isa = PBXBuildFile; fileRef = EE7C409770D76C04E13569C2 /* model-model.png */; };
 		92690276656A7939CB7064C4 /* CulturalVisionScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC595306CC91E8D2F55E3CB /* CulturalVisionScannerView.swift */; };
@@ -66,6 +70,7 @@
 		C2AFED8D893F7F6B9B907B1F /* ArtifactCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8A0544C3E1EBF33CEAD7A1 /* ArtifactCardView.swift */; };
 		C77288587AEDD248CC2A939E /* model-prayer_niche_mihrab.png in Resources */ = {isa = PBXBuildFile; fileRef = 04DC3F818C73FC3E4B4CD81D /* model-prayer_niche_mihrab.png */; };
 		CA37C514E18E24321254FCBF /* RealityKitARView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56274B3FEF904B396480F67B /* RealityKitARView.swift */; };
+		CBF62040ED5F3A878E7ECD73 /* al_shaheed_aleph_mesh.glb in Resources */ = {isa = PBXBuildFile; fileRef = 693F4C5000C42BD17E0FD52B /* al_shaheed_aleph_mesh.glb */; };
 		CEF47655B3945CEDFF312602 /* Artifact3DEntityBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64912B6823D167319A2D826 /* Artifact3DEntityBuilder.swift */; };
 		D1E07BFC4712BD3D28D38732 /* ARSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A86474DCF8F8A1E11395E368 /* ARSessionManager.swift */; };
 		D7EAFDF2CD825450B976C2AB /* quran.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E1A08715E6429C8B5611BDB9 /* quran.jpg */; };
@@ -84,6 +89,7 @@
 		04DC3F818C73FC3E4B4CD81D /* model-prayer_niche_mihrab.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-prayer_niche_mihrab.png"; sourceTree = "<group>"; };
 		088CBCE32F1BC336441E1B7B /* ARViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARViewModel.swift; sourceTree = "<group>"; };
 		0A636C38A07CF7AF8DAF646D /* RealHardwareMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealHardwareMonitor.swift; sourceTree = "<group>"; };
+		0C80D439B3356C25C1705E63 /* tahrir_square_satellite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tahrir_square_satellite.png; sourceTree = "<group>"; };
 		12350045B15195BF3979B423 /* bento_showcase.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bento_showcase.png; sourceTree = "<group>"; };
 		18035B2E9B2B74861F99D36F /* Artifact3DTurntableSceneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artifact3DTurntableSceneView.swift; sourceTree = "<group>"; };
 		1D25A0BB6EB69C91CA6DB5C1 /* catalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = catalog.json; sourceTree = "<group>"; };
@@ -96,6 +102,7 @@
 		361DD4EFBC9018266E99901C /* kufic.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = kufic.jpg; sourceTree = "<group>"; };
 		3C703821A1C6F10930AF9EA0 /* CatalogHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogHomeView.swift; sourceTree = "<group>"; };
 		40B2EBFD9BD375F4145F4DA7 /* model.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = model.usdz; sourceTree = "<group>"; };
+		4309496C0BD0B8188CCDB407 /* al_shaheed_satellite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = al_shaheed_satellite.png; sourceTree = "<group>"; };
 		4349349970EC69E9D6E0FE96 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		4361872E55C53DC872EE47E1 /* prayer_niche_mihrab.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = prayer_niche_mihrab.usdz; sourceTree = "<group>"; };
 		43D38150B86D341BF75762B5 /* praha_side2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = praha_side2.jpg; sourceTree = "<group>"; };
@@ -112,6 +119,7 @@
 		5D3C6563387276C26F33D2A8 /* stela_of_hammurabi_replica.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = stela_of_hammurabi_replica.usdz; sourceTree = "<group>"; };
 		60F98D10D334E9D1A637CAB9 /* alqami_artifact.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = alqami_artifact.jpg; sourceTree = "<group>"; };
 		62795F142A661B14B39FE29B /* BaghdadMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaghdadMapView.swift; sourceTree = "<group>"; };
+		693F4C5000C42BD17E0FD52B /* al_shaheed_aleph_mesh.glb */ = {isa = PBXFileReference; path = al_shaheed_aleph_mesh.glb; sourceTree = "<group>"; };
 		6AC91F53FC5C563E03AB2F53 /* Old_Islamic_Helmet.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = Old_Islamic_Helmet.usdz; sourceTree = "<group>"; };
 		6DD1B547998CC4638E253D68 /* SpatialRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialRootView.swift; sourceTree = "<group>"; };
 		6E087CD7A056B2515E93A070 /* bowl.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = bowl.usdz; sourceTree = "<group>"; };
@@ -137,6 +145,7 @@
 		B8A4BF81940D7F923A4CFBC9 /* custom_room_bg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = custom_room_bg.png; sourceTree = "<group>"; };
 		BD741CCDA242DFAE135A4003 /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		C119270D604639792BEE6C08 /* model-babylonian_map_of_the_world_tablet_-_imago_mundi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "model-babylonian_map_of_the_world_tablet_-_imago_mundi.png"; sourceTree = "<group>"; };
+		C4269D0E499C634418F4E68D /* tahrir_square_aleph_mesh.glb */ = {isa = PBXFileReference; path = tahrir_square_aleph_mesh.glb; sourceTree = "<group>"; };
 		C597F7796ECEF350DC92BB2A /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		D1D4B063560349113B3644AF /* alqami-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "alqami-logo.png"; sourceTree = "<group>"; };
 		D4B169AF4EF7047DFEB6383C /* LightingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LightingManager.swift; sourceTree = "<group>"; };
@@ -147,6 +156,7 @@
 		F2E79BBBCAD1223904C523CC /* meshy-model.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "meshy-model.usdz"; sourceTree = "<group>"; };
 		F4C475D4891BAA0781A91995 /* manuscript.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = manuscript.jpg; sourceTree = "<group>"; };
 		F4EA66896E6F1FCBA65860AC /* RealityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealityKit.framework; path = System/Library/Frameworks/RealityKit.framework; sourceTree = SDKROOT; };
+		F721E4C3AFF242483E14C234 /* Aleph3DGeospatialModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aleph3DGeospatialModalView.swift; sourceTree = "<group>"; };
 		F83F00DCB8647EA342228521 /* babylonian_map_of_the_world_tablet_-_imago_mundi.usdz */ = {isa = PBXFileReference; lastKnownFileType = file.usdz; path = "babylonian_map_of_the_world_tablet_-_imago_mundi.usdz"; sourceTree = "<group>"; };
 		FA8A0544C3E1EBF33CEAD7A1 /* ArtifactCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtifactCardView.swift; sourceTree = "<group>"; };
 		FA9AEA1DF51B645CC3331E52 /* praha_back.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = praha_back.jpg; sourceTree = "<group>"; };
@@ -304,6 +314,7 @@
 		ACA732A437C5DE73AC7AC416 /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				4309496C0BD0B8188CCDB407 /* al_shaheed_satellite.png */,
 				60F98D10D334E9D1A637CAB9 /* alqami_artifact.jpg */,
 				D1D4B063560349113B3644AF /* alqami-logo.png */,
 				12350045B15195BF3979B423 /* bento_showcase.png */,
@@ -329,6 +340,7 @@
 				43D38150B86D341BF75762B5 /* praha_side2.jpg */,
 				7DA259715F9FCA45A1BB328A /* praha_top.jpg */,
 				E1A08715E6429C8B5611BDB9 /* quran.jpg */,
+				0C80D439B3356C25C1705E63 /* tahrir_square_satellite.png */,
 			);
 			path = Images;
 			sourceTree = "<group>";
@@ -336,6 +348,7 @@
 		AD4B4BD491F606A063D66E7A /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				693F4C5000C42BD17E0FD52B /* al_shaheed_aleph_mesh.glb */,
 				F83F00DCB8647EA342228521 /* babylonian_map_of_the_world_tablet_-_imago_mundi.usdz */,
 				6E087CD7A056B2515E93A070 /* bowl.usdz */,
 				F2E79BBBCAD1223904C523CC /* meshy-model.usdz */,
@@ -346,6 +359,7 @@
 				4361872E55C53DC872EE47E1 /* prayer_niche_mihrab.usdz */,
 				02FE3B973B9753563D992F4E /* saqakhane_bowl.usdz */,
 				5D3C6563387276C26F33D2A8 /* stela_of_hammurabi_replica.usdz */,
+				C4269D0E499C634418F4E68D /* tahrir_square_aleph_mesh.glb */,
 				47500F56DEDF2A924985BCE1 /* Zulfiqar_Sword.usdz */,
 			);
 			path = Models;
@@ -362,6 +376,7 @@
 		D9F17BDBD11154231366A965 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				F721E4C3AFF242483E14C234 /* Aleph3DGeospatialModalView.swift */,
 				18035B2E9B2B74861F99D36F /* Artifact3DTurntableSceneView.swift */,
 				33B5CA2A6819D6CBABDD2C90 /* SpatialSoundHelper.swift */,
 				86E6B20DBEA47BFEBF7E4404 /* VisionGlassModifier.swift */,
@@ -474,6 +489,8 @@
 			files = (
 				39E90B6E1517F1A2A620ED87 /* Old_Islamic_Helmet.usdz in Resources */,
 				1888833196625EA0CE916479 /* Zulfiqar_Sword.usdz in Resources */,
+				CBF62040ED5F3A878E7ECD73 /* al_shaheed_aleph_mesh.glb in Resources */,
+				8431823782BCE199ED044821 /* al_shaheed_satellite.png in Resources */,
 				6586C0A616138A8C07FABC40 /* alqami-logo.png in Resources */,
 				299F5C467BD6A6CEE0FFFA86 /* alqami_artifact.jpg in Resources */,
 				A66D89F017378B00F1295DAF /* babylonian_map_of_the_world_tablet_-_imago_mundi.usdz in Resources */,
@@ -509,6 +526,8 @@
 				D7EAFDF2CD825450B976C2AB /* quran.jpg in Resources */,
 				7A9CA9F2C1423CB82120398E /* saqakhane_bowl.usdz in Resources */,
 				281FA59BBC4D184EB1186E6C /* stela_of_hammurabi_replica.usdz in Resources */,
+				178C0C96C16BB57609CD02AC /* tahrir_square_aleph_mesh.glb in Resources */,
+				2A23817585E6AA15A9BA77C9 /* tahrir_square_satellite.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,6 +542,7 @@
 				35ABFC274D8F93113BC5CF5D /* ARScannerTabView.swift in Sources */,
 				D1E07BFC4712BD3D28D38732 /* ARSessionManager.swift in Sources */,
 				92B3960FFF1B94AD02109C95 /* ARViewModel.swift in Sources */,
+				2D523F9BDC9C054F4AFFD45E /* Aleph3DGeospatialModalView.swift in Sources */,
 				614125EA9DE399763966A6F8 /* AlqamiNativeApp.swift in Sources */,
 				5EBC431870BE80715A8426D5 /* Artifact.swift in Sources */,
 				CEF47655B3945CEDFF312602 /* Artifact3DEntityBuilder.swift in Sources */,
