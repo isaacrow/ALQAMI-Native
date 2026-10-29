@@ -385,3 +385,169 @@ public struct SpatialRootView: View {
         .buttonStyle(.plain)
     }
 }
+
+// MARK: - Duo-Fold 3D Mechanical Book/Door Carousel Showcase (Apple Liquid Glass)
+public struct DuoFoldShowcaseModalView: View {
+    public let artifacts: [Artifact]
+    public let isArabic: Bool
+    public var onSelectArtifact: (Artifact) -> Void
+    public var onLaunchAR: (Artifact) -> Void
+    public var onClose: () -> Void
+
+    @State private var currentIndex: Int = 0
+    @State private var foldRotation: Double = 0
+
+    public var body: some View {
+        let current = artifacts[currentIndex % max(1, artifacts.count)]
+        GeometryReader { geo in
+            let isWide = geo.size.width > 620
+            VStack(spacing: 12) {
+                // Header
+                HStack {
+                    HStack(spacing: 6) {
+                        Image(systemName: "book.pages.fill")
+                            .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+                        Text(isArabic ? "العرض المطوي ثلاثي الأبعاد • DUO-FOLD 3D" : "DUO-FOLD 3D SPATIAL SHOWCASE")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                    }
+                    Spacer()
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 12.5, weight: .bold))
+                            .foregroundColor(.white)
+                            .glossyCircle(size: 32)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                if isWide {
+                    HStack(spacing: 10) {
+                        duoFold3DLeaf(current: current)
+                        duoFoldTextLeaf(current: current)
+                    }
+                } else {
+                    VStack(spacing: 10) {
+                        duoFold3DLeaf(current: current)
+                            .frame(height: 210)
+                        duoFoldTextLeaf(current: current)
+                    }
+                }
+
+                // Bottom Prev/Next Controls
+                HStack(spacing: 14) {
+                    Button(action: { flipPage(delta: -1) }) {
+                        Label(isArabic ? "السابق" : "Prev", systemImage: "chevron.left")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .glossyPill()
+                    }
+                    .buttonStyle(.plain)
+
+                    Text("\(currentIndex + 1) / \(artifacts.count)")
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.8))
+
+                    Button(action: { flipPage(delta: 1) }) {
+                        Label(isArabic ? "التالي" : "Next", systemImage: "chevron.right")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .glossyPill()
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(16)
+            .glossyGlass(cornerRadius: 28, tintOpacity: 0.26)
+        }
+    }
+
+    private func duoFold3DLeaf(current: Artifact) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(red: 0.796, green: 0.788, blue: 0.773)) // #CBC9C5
+
+            Artifact3DTurntableSceneView(
+                artifact: current,
+                autoRotate: true,
+                allowsCameraControl: true,
+                cameraDistance: 0.65
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+        .rotation3DEffect(.degrees(foldRotation), axis: (x: 0, y: 1, z: 0), anchor: .trailing)
+    }
+
+    private func duoFoldTextLeaf(current: Artifact) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(current.itemCode)
+                .font(.system(size: 10.5, weight: .bold, design: .monospaced))
+                .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+
+            Text(current.title.text(isArabic: isArabic))
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.white)
+                .lineLimit(1)
+
+            Text(current.subtitle.text(isArabic: isArabic))
+                .font(.system(size: 12))
+                .foregroundColor(.white.opacity(0.68))
+                .lineLimit(1)
+
+            Text(current.description.text(isArabic: isArabic))
+                .font(.system(size: 12))
+                .foregroundColor(.white.opacity(0.85))
+                .lineLimit(3)
+
+            Spacer(minLength: 4)
+
+            HStack(spacing: 8) {
+                Button(action: { onLaunchAR(current) }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "arkit")
+                        Text(isArabic ? "معاينة في المكان (AR)" : "Place in AR")
+                    }
+                    .font(.system(size: 11.5, weight: .bold))
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .glossyPill(isSelected: true)
+                }
+                .buttonStyle(.plain)
+
+                Button(action: { onSelectArtifact(current) }) {
+                    Text(isArabic ? "التفاصيل الكاملة" : "Full Details")
+                        .font(.system(size: 11.5, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .glossyPill()
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .glossyGlass(cornerRadius: 20, tintOpacity: 0.18)
+        .rotation3DEffect(.degrees(-foldRotation), axis: (x: 0, y: 1, z: 0), anchor: .leading)
+    }
+
+    private func flipPage(delta: Int) {
+        guard !artifacts.isEmpty else { return }
+        SpatialSoundHelper.shared.playSnapHaptic()
+        withAnimation(.easeInOut(duration: 0.18)) {
+            foldRotation = delta > 0 ? 35 : -35
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+            currentIndex = (currentIndex + delta + artifacts.count) % artifacts.count
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.78)) {
+                foldRotation = 0
+            }
+        }
+    }
+}
