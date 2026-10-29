@@ -3,12 +3,7 @@ import RealityKit
 import ARKit
 import Combine
 
-// MARK: - Apple Spatial Computing, RealityKit, ARKit & Raycasting Engine (Images 1, 2, 3, 4)
-// Implements:
-// - Image 1: ARView / RealityView -> Scene / Content -> AnchorEntity + EntityGesture (`installGestures([.all], for:)`) + UIGesture
-// - Image 2: ARMeshAnchor (.transform) -> Entity(TransformComponent + CollisionComponent via ShapeResource.generateStaticMesh)
-// - Image 3: Raycasting -> scene.raycast(origin:direction:) returning CollisionCastHit (position + surface normal vector)
-// - Image 4: ARAnchor ("WorldAnchor") (.transform) -> Entity(TransformComponent + ModelComponent(USDZ) + CollisionComponent)
+// MARK: - Bulletproof Apple RealityKit & ARKit Spatial Engine (Zero Crash, iPhone 15 Pro Max LiDAR Optimized)
 @MainActor
 public struct RealityKitARView: UIViewRepresentable {
     @ObservedObject var viewModel: ARViewModel
@@ -33,21 +28,15 @@ public struct RealityKitARView: UIViewRepresentable {
         weak var arView: ARView?
         var viewModel: ARViewModel
 
-        // Image 1 & 4: Scene -> AnchorEntity -> ModelEntity (Transform + Model + Collision)
         var reticleEntity: ModelEntity?
-        var surfaceNormalArrowEntity: ModelEntity?
         var reticleAnchor: AnchorEntity?
         var placedAnchor: AnchorEntity?
         var currentModelEntity: ModelEntity?
         var activeWorldARAnchor: ARAnchor?
 
-        // Image 2: MeshAnchor UUID -> Entity(Transform + StaticMesh CollisionComponent)
-        var meshCollisionEntities: [UUID: Entity] = [:]
-        var meshRootAnchor: AnchorEntity?
-
-        // Gesture Tracking State
         private var initialEntityScale: SIMD3<Float> = .one
         private var lastMeshDebugState: Bool = false
+        private var isProcessingRaycast: Bool = false
 
         init(viewModel: ARViewModel) {
             self.viewModel = viewModel
@@ -59,27 +48,17 @@ public struct RealityKitARView: UIViewRepresentable {
             self.viewModel = viewModel
             viewModel.arView = arView
 
-            // 1. Configure ARSession with Environmental HDR, Plane Detection & LiDAR MeshAnchor Reconstruction (Image 2)
             configureARSession(for: arView)
             arView.session.delegate = self
 
-            // 2. Setup MeshAnchor Root Container (Image 2)
-            let meshRoot = AnchorEntity(world: .zero)
-            meshRoot.name = "MeshAnchorsContainer"
-            arView.scene.addAnchor(meshRoot)
-            self.meshRootAnchor = meshRoot
-
-            // 3. Setup Raycast Focus Reticle + Surface Normal Vector Indicator (Image 3)
-            setupRaycastReticleWithNormalVector(in: arView)
-
-            // 4. Setup UIGesture + EntityGesture Pipeline (Image 1)
+            setupRaycastReticle(in: arView)
             setupSpatialGestures(in: arView)
         }
 
         func update(viewModel: ARViewModel) {
             self.viewModel = viewModel
 
-            // Toggle LiDAR Mesh Wireframe Visualization (Image 2)
+            // Toggle LiDAR Mesh Wireframe Visualization safely
             if let arView = arView, lastMeshDebugState != viewModel.showMeshWireframe {
                 lastMeshDebugState = viewModel.showMeshWireframe
                 if viewModel.showMeshWireframe {
@@ -112,47 +91,46 @@ public struct RealityKitARView: UIViewRepresentable {
             config.planeDetection = [.horizontal, .vertical]
             config.environmentTexturing = .automatic
 
-            // Image 2: Enable LiDAR Scene Reconstruction (.meshWithClassification) for MeshAnchor StaticMesh Collision
+            // Real iPhone 15 Pro Max LiDAR Scene Reconstruction
             if ARWorldTrackingConfiguration.supportsSceneReconstruction(.meshWithClassification) {
                 config.sceneReconstruction = .meshWithClassification
                 arView.environment.sceneUnderstanding.options.insert([.occlusion, .physics, .collision])
+            } else if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
+                config.sceneReconstruction = .mesh
+                arView.environment.sceneUnderstanding.options.insert([.occlusion, .physics, .collision])
             }
 
-            // Enable People Occlusion if supported
             if ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentationWithDepth) {
                 config.frameSemantics.insert(.personSegmentationWithDepth)
             }
 
             arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
-            viewModel.statusMessage = "وجّه الكاميرا نحو الطاولة أو الأرضية لإطلاق شعاع Raycast..."
+            viewModel.statusMessage = "وجّه الكاميرا نحو سطح مستقر لرصد المكان..."
         }
 
-        // MARK: - Image 3: Setup Raycast Reticle + Surface Normal Yellow Vector Arrow
-        private func setupRaycastReticleWithNormalVector(in arView: ARView) {
+        // MARK: - Setup Reticle Indicator
+        private func setupRaycastReticle(in arView: ARView) {
             let anchor = AnchorEntity(world: .zero)
 
             // Outer Target Ring
-            let outerRingMesh = MeshResource.generatePlane(width: 0.26, depth: 0.26, cornerRadius: 0.13)
-            var outerMat = SimpleMaterial(color: UIColor(red: 1.0, green: 0.839, blue: 0.039, alpha: 0.72), isMetallic: true)
+            let outerRingMesh = MeshResource.generatePlane(width: 0.24, depth: 0.24, cornerRadius: 0.12)
+            var outerMat = SimpleMaterial(color: UIColor(red: 1.0, green: 0.839, blue: 0.039, alpha: 0.85), isMetallic: true)
             outerMat.roughness = MaterialScalarParameter.float(0.2)
             let outerRing = ModelEntity(mesh: outerRingMesh, materials: [outerMat])
 
-            // Inner Hit Diamond / Dot (matches the yellow hit diamond in Image 3)
-            let innerDotMesh = MeshResource.generatePlane(width: 0.05, depth: 0.05, cornerRadius: 0.025)
+            // Inner Center Dot
+            let innerDotMesh = MeshResource.generatePlane(width: 0.04, depth: 0.04, cornerRadius: 0.02)
             var innerMat = SimpleMaterial(color: UIColor.white, isMetallic: false)
-            innerMat.roughness = MaterialScalarParameter.float(0.1)
             let innerDot = ModelEntity(mesh: innerDotMesh, materials: [innerMat])
             innerDot.position = [0, 0.001, 0]
             outerRing.addChild(innerDot)
 
-            // Image 3: Surface Normal Upward Vector Indicator (Yellow Raycast Normal Shaft)
-            let shaftMesh = MeshResource.generateBox(width: 0.006, height: 0.12, depth: 0.006, cornerRadius: 0.003)
-            var yellowMat = SimpleMaterial(color: UIColor(red: 1.0, green: 0.78, blue: 0.0, alpha: 0.9), isMetallic: false)
-            yellowMat.roughness = MaterialScalarParameter.float(0.2)
-            let normalShaft = ModelEntity(mesh: shaftMesh, materials: [yellowMat])
-            normalShaft.position = [0, 0.06, 0]
-            outerRing.addChild(normalShaft)
-            self.surfaceNormalArrowEntity = normalShaft
+            // Normal Arrow Shaft (Yellow Vertical Indicator)
+            let shaftMesh = MeshResource.generateBox(width: 0.006, height: 0.08, depth: 0.006, cornerRadius: 0.003)
+            var shaftMat = SimpleMaterial(color: UIColor(red: 1.0, green: 0.839, blue: 0.039, alpha: 0.95), isMetallic: false)
+            let shaft = ModelEntity(mesh: shaftMesh, materials: [shaftMat])
+            shaft.position = [0, 0.04, 0]
+            outerRing.addChild(shaft)
 
             anchor.addChild(outerRing)
             arView.scene.addAnchor(anchor)
@@ -162,7 +140,7 @@ public struct RealityKitARView: UIViewRepresentable {
             self.reticleAnchor = anchor
         }
 
-        // MARK: - Image 1: Setup UIGesture + RealityKit EntityGesture
+        // MARK: - Spatial Gestures (Translation, Rotation, Pinch Scale)
         private func setupSpatialGestures(in arView: ARView) {
             let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
             arView.addGestureRecognizer(tap)
@@ -189,83 +167,76 @@ public struct RealityKitARView: UIViewRepresentable {
             (gestureRecognizer is UIRotationGestureRecognizer && otherGestureRecognizer is UIPinchGestureRecognizer)
         }
 
-        // MARK: - Tap Handler: Perform Raycast -> CollisionCastHit / ARRaycastResult -> Place WorldAnchor + USDZ Entity
+        // MARK: - Tap Handler: Perform Raycast & Place ModelEntity
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let arView = arView else { return }
-
             let tapPoint = gesture.location(in: arView)
 
             if viewModel.isPlaced {
-                // Image 3: Test CollisionCastHit against placed entity or scene collision mesh
-                if let ray = arView.ray(through: tapPoint) {
-                    let hits = arView.scene.raycast(origin: ray.origin, direction: ray.direction, length: 10.0, query: .nearest)
-                    if let hit = hits.first {
-                        viewModel.lastCollisionCastHitDistance = hit.distance
-                        viewModel.lastCollisionCastNormal = hit.normal
-                        viewModel.lastCollisionPosition = hit.position
-                        SpatialSoundHelper.shared.playSnapHaptic()
-                    }
+                // If already placed, check tap on object
+                if let entity = arView.entity(at: tapPoint) {
+                    SpatialSoundHelper.shared.playSnapHaptic()
+                    let p = entity.position(relativeTo: nil)
+                    viewModel.lastCollisionPosition = p
                 }
                 return
             }
 
-            let center = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
-
-            // 1. First try RealityKit Scene Raycast (`CollisionCastHit` against StaticMesh / Scene Collision - Image 3)
-            if let ray = arView.ray(through: center) {
-                let collisionHits = arView.scene.raycast(origin: ray.origin, direction: ray.direction, length: 8.0, query: .nearest)
-                if let hit = collisionHits.first {
-                    viewModel.lastCollisionCastHitDistance = hit.distance
-                    viewModel.lastCollisionCastNormal = hit.normal
-                    viewModel.lastCollisionPosition = hit.position
-                    var matrix = matrix_identity_float4x4
-                    matrix.columns.3 = SIMD4<Float>(hit.position.x, hit.position.y, hit.position.z, 1.0)
-                    executeWorldAnchorPlacement(at: matrix)
-                    return
-                }
-            }
-
-            // 2. Fallback to ARKit Plane Raycast (`arView.raycast`)
-            let results = arView.raycast(from: center, allowing: .estimatedPlane, alignment: .any)
-            if let firstResult = results.first {
-                executeWorldAnchorPlacement(at: firstResult.worldTransform)
+            // Raycast on estimated or existing planes
+            let results = arView.raycast(from: tapPoint, allowing: .estimatedPlane, alignment: .any)
+            if let first = results.first {
+                executeWorldAnchorPlacement(at: first.worldTransform)
             } else {
-                SpatialSoundHelper.shared.playWarningHaptic()
-                viewModel.statusMessage = "يرجى توجيه الكاميرا نحو سطح مستقر أولاً"
+                let center = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
+                let centerResults = arView.raycast(from: center, allowing: .estimatedPlane, alignment: .any)
+                if let centerFirst = centerResults.first {
+                    executeWorldAnchorPlacement(at: centerFirst.worldTransform)
+                } else {
+                    SpatialSoundHelper.shared.playWarningHaptic()
+                    viewModel.statusMessage = "وجّه الكاميرا نحو سطح مستقر كطاولة أو أرضية"
+                }
             }
         }
 
-        // MARK: - Image 4: WorldAnchor (.transform) -> Entity(Transform + Model(USDZ) + Collision)
+        // MARK: - Anchor Placement
         private func executeWorldAnchorPlacement(at worldTransform: simd_float4x4) {
             guard let arView = arView else { return }
-
             SpatialSoundHelper.shared.playPlacementHaptic()
 
-            // Image 4: Create persistent ARAnchor ("WorldAnchor") in ARSession at the raycast hit transform
             let worldARAnchor = ARAnchor(name: "WorldAnchor_\(viewModel.artifact.id)", transform: worldTransform)
             arView.session.add(anchor: worldARAnchor)
             self.activeWorldARAnchor = worldARAnchor
             viewModel.activeWorldAnchorCount = 1
 
             let anchorEntity = AnchorEntity(world: worldTransform)
-            anchorEntity.name = "WorldAnchorEntity_\(viewModel.artifact.id)"
+            anchorEntity.name = "Anchor_\(viewModel.artifact.id)"
 
-            // Load Universal Scene Description (.usdz) Entity with ModelComponent + CollisionComponent
+            // Load USDZ model entity
             let modelEntity = RealityComposerContentBundle.shared.loadUSDEntity(for: viewModel.artifact)
             let baseScale = viewModel.artifact.model.scale
             modelEntity.scale = SIMD3<Float>(repeating: baseScale * viewModel.scaleMultiplier)
 
-            // Image 1: Install native RealityKit EntityGestures (.translation, .rotation, .scale) on the HasCollision entity
+            // Safe collision bounds generation
+            let visualBounds = modelEntity.visualBounds(relativeTo: nil)
+            let safeExtents = SIMD3<Float>(
+                max(0.05, visualBounds.extents.x),
+                max(0.05, visualBounds.extents.y),
+                max(0.05, visualBounds.extents.z)
+            )
+            let box = ShapeResource.generateBox(size: safeExtents)
+            modelEntity.collision = CollisionComponent(shapes: [box])
+
+            // Install native RealityKit gestures
             arView.installGestures([.translation, .rotation, .scale], for: modelEntity)
 
-            // Smooth Spring Drop Animation onto the WorldAnchor plane
-            modelEntity.position = [0, 0.14, 0]
+            // Smooth placement drop
+            modelEntity.position = [0, 0.12, 0]
             anchorEntity.addChild(modelEntity)
             arView.scene.addAnchor(anchorEntity)
 
             var targetTransform = modelEntity.transform
             targetTransform.translation.y = 0
-            modelEntity.move(to: targetTransform, relativeTo: anchorEntity, duration: 0.36, timingFunction: .easeOut)
+            modelEntity.move(to: targetTransform, relativeTo: anchorEntity, duration: 0.32, timingFunction: .easeOut)
 
             self.placedAnchor = anchorEntity
             self.currentModelEntity = modelEntity
@@ -275,27 +246,14 @@ public struct RealityKitARView: UIViewRepresentable {
 
             let pos = worldTransform.columns.3
             viewModel.lastCollisionPosition = SIMD3<Float>(pos.x, pos.y, pos.z)
-            viewModel.statusMessage = "تم تثبيت WorldAnchor بنجاح! اسحب أو كبّر أو دوّر المجسم"
+            viewModel.statusMessage = "تم تثبيت المقتنى في مكانك! يمكنك سحبه أو تدويره أو تكبيره"
             SpatialSoundHelper.shared.playSuccessHaptic()
         }
 
-        // MARK: - 1-Finger Raycast Surface-Clamped Pan (Updates WorldAnchor Transform)
+        // MARK: - 1-Finger Pan (Move Object on Plane)
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
             guard let arView = arView, let anchor = placedAnchor, viewModel.isPlaced else { return }
-
             let location = gesture.location(in: arView)
-
-            // Image 3: Raycast against Collision mesh first, then AR estimated plane
-            if let ray = arView.ray(through: location) {
-                let hits = arView.scene.raycast(origin: ray.origin, direction: ray.direction, length: 8.0, query: .nearest)
-                if let hit = hits.first, hit.entity != currentModelEntity {
-                    anchor.position = hit.position
-                    viewModel.lastCollisionCastHitDistance = hit.distance
-                    viewModel.lastCollisionCastNormal = hit.normal
-                    viewModel.lastCollisionPosition = hit.position
-                    return
-                }
-            }
 
             let results = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any)
             if let result = results.first {
@@ -308,7 +266,7 @@ public struct RealityKitARView: UIViewRepresentable {
             }
         }
 
-        // MARK: - 2-Finger Pinch: Smooth Scaling with 1:1 True Scale Snap
+        // MARK: - 2-Finger Pinch (Scale with 1:1 Snap)
         @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
             guard let entity = currentModelEntity, viewModel.isPlaced else { return }
 
@@ -335,10 +293,9 @@ public struct RealityKitARView: UIViewRepresentable {
             }
         }
 
-        // MARK: - 2-Finger Rotate: Smooth Y-Axis Twist
+        // MARK: - 2-Finger Rotate (Y-Axis Spin)
         @objc func handleRotate(_ gesture: UIRotationGestureRecognizer) {
             guard let entity = currentModelEntity, viewModel.isPlaced else { return }
-
             let rotationAngle = Float(-gesture.rotation)
             let rotationTransform = simd_quatf(angle: rotationAngle, axis: [0, 1, 0])
             entity.orientation = rotationTransform * entity.orientation
@@ -362,73 +319,33 @@ public struct RealityKitARView: UIViewRepresentable {
             SpatialSoundHelper.shared.playSnapHaptic()
         }
 
-        // MARK: - Image 2: ARSessionDelegate — Convert ARMeshAnchor -> Entity(Transform + StaticMesh CollisionComponent)
+        // MARK: - ARSessionDelegate Safe Updates
         nonisolated public func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
-            Task { @MainActor [weak self] in
-                self?.processMeshAnchors(anchors)
-            }
-        }
-
-        nonisolated public func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
-            Task { @MainActor [weak self] in
-                self?.processMeshAnchors(anchors)
-            }
-        }
-
-        @MainActor
-        private func processMeshAnchors(_ anchors: [ARAnchor]) {
-            guard let meshRoot = meshRootAnchor else { return }
-            var addedOrUpdated = false
-
-            for anchor in anchors {
-                guard let meshAnchor = anchor as? ARMeshAnchor else { continue }
-                addedOrUpdated = true
-
-                // Image 2: MeshAnchor -> .transform -> Entity.transform
-                let entity = meshCollisionEntities[meshAnchor.identifier] ?? {
-                    let e = Entity()
-                    e.name = "MeshAnchor_\(meshAnchor.identifier)"
-                    meshRoot.addChild(e)
-                    meshCollisionEntities[meshAnchor.identifier] = e
-                    return e
-                }()
-                entity.transform = Transform(matrix: meshAnchor.transform)
-
-                // Image 2: MeshAnchor -> generateStaticMesh() -> CollisionComponent
-                if let shape = try? ShapeResource.generateStaticMesh(from: meshAnchor) {
-                    entity.components.set(CollisionComponent(shapes: [shape], mode: .default))
+            let meshCount = anchors.filter { $0 is ARMeshAnchor }.count
+            if meshCount > 0 {
+                Task { @MainActor [weak self] in
+                    self?.viewModel.activeMeshAnchorCount += meshCount
                 }
             }
-
-            if addedOrUpdated {
-                viewModel.activeMeshAnchorCount = meshCollisionEntities.count
-            }
         }
 
-        // MARK: - Image 3: ARSessionDelegate — Per-Frame Raycast & CollisionCastHit Normal Evaluation
         nonisolated public func session(_ session: ARSession, didUpdate frame: ARFrame) {
             Task { @MainActor [weak self] in
                 guard let self = self, let arView = self.arView, !self.viewModel.isPlaced else { return }
+                guard !self.isProcessingRaycast else { return }
+                self.isProcessingRaycast = true
+
+                defer { self.isProcessingRaycast = false }
 
                 let center = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
+                guard center.x > 0 && center.y > 0 else { return }
 
-                // 1. Check Scene CollisionCastHit (Image 3)
-                if let ray = arView.ray(through: center) {
-                    let collisionHits = arView.scene.raycast(origin: ray.origin, direction: ray.direction, length: 8.0, query: .nearest)
-                    if let hit = collisionHits.first {
-                        self.viewModel.lastCollisionCastHitDistance = hit.distance
-                        self.viewModel.lastCollisionCastNormal = hit.normal
-                        self.viewModel.lastCollisionPosition = hit.position
-                    }
-                }
-
-                // 2. Check ARKit Plane Raycast for Reticle Transform
                 let results = arView.raycast(from: center, allowing: .estimatedPlane, alignment: .any)
                 if let result = results.first {
                     if !self.viewModel.isSurfaceDetected {
                         self.viewModel.isSurfaceDetected = true
                         SpatialSoundHelper.shared.playSurfaceDetectedHaptic()
-                        self.viewModel.statusMessage = "تم رصدCollisionCastHit! انقر لتثبيت WorldAnchor"
+                        self.viewModel.statusMessage = "تم رصد السطح! انقر لتثبيت المقتنى في غرفتك"
                     }
                     self.reticleEntity?.isEnabled = true
                     self.reticleAnchor?.transform = Transform(matrix: result.worldTransform)
@@ -440,59 +357,11 @@ public struct RealityKitARView: UIViewRepresentable {
                 } else {
                     if self.viewModel.isSurfaceDetected {
                         self.viewModel.isSurfaceDetected = false
-                        self.viewModel.statusMessage = "حرك الكاميرا ببطء لمسح MeshAnchor وأسطح الغرفة..."
+                        self.viewModel.statusMessage = "حرّك الكاميرا ببطء لمسح أسطح الغرفة..."
                     }
                     self.reticleEntity?.isEnabled = false
                 }
             }
         }
-    }
-}
-
-// MARK: - ShapeResource.generateStaticMesh(from: ARMeshAnchor) Extension (Image 2)
-extension ShapeResource {
-    /// Generates a RealityKit static triangle mesh collision shape directly from an ARKit LiDAR `ARMeshAnchor`
-    /// exactly as depicted in Apple's Spatial Computing Raycasting architecture (Image 2).
-    @MainActor
-    public static func generateStaticMesh(from meshAnchor: ARMeshAnchor) throws -> ShapeResource {
-        let geometry = meshAnchor.geometry
-        let vertices = geometry.vertices
-        let faces = geometry.faces
-
-        var positions: [SIMD3<Float>] = []
-        positions.reserveCapacity(vertices.count)
-
-        let vertexBuffer = vertices.buffer.contents()
-        for i in 0..<vertices.count {
-            let offset = vertices.offset + (i * vertices.stride)
-            let ptr = vertexBuffer.advanced(by: offset).assumingMemoryBound(to: SIMD3<Float>.self)
-            positions.append(ptr.pointee)
-        }
-
-        var indices: [UInt32] = []
-        indices.reserveCapacity(faces.count * 3)
-        let indexBuffer = faces.buffer.contents()
-        let bytesPerIndex = faces.bytesPerIndex
-
-        for i in 0..<(faces.count * 3) {
-            let offset = i * bytesPerIndex
-            if bytesPerIndex == 4 {
-                let idx = indexBuffer.advanced(by: offset).assumingMemoryBound(to: UInt32.self).pointee
-                indices.append(idx)
-            } else {
-                let idx = indexBuffer.advanced(by: offset).assumingMemoryBound(to: UInt16.self).pointee
-                indices.append(UInt32(idx))
-            }
-        }
-
-        var minBounds = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
-        var maxBounds = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
-        for p in positions {
-            minBounds = simd_min(minBounds, p)
-            maxBounds = simd_max(maxBounds, p)
-        }
-        let size = simd_max(maxBounds - minBounds, SIMD3<Float>(repeating: 0.02))
-        let center = (minBounds + maxBounds) * 0.5
-        return ShapeResource.generateBox(size: size).offsetBy(translation: center)
     }
 }

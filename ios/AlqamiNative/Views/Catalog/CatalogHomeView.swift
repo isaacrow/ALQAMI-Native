@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Exact ALQAMI 6 Catalog & Spatial Window View with Apple Glossy Glass & Responsive Proportions
+// MARK: - Exact ALQAMI 6 Catalog & Spatial Experience (Full Edge-to-Edge iPhone 15 Pro Max Layout)
 public struct CatalogHomeView: View {
     @ObservedObject public var viewModel: CatalogViewModel
     public var activeOrnamentTab: OrnamentTab
@@ -32,371 +32,304 @@ public struct CatalogHomeView: View {
 
     public var body: some View {
         GeometryReader { outerGeo in
-            let isWide = outerGeo.size.width > 640
+            let isWide = outerGeo.size.width > 680
             let columns: [GridItem] = isWide
                 ? [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)]
-                : [GridItem(.flexible(), spacing: 11), GridItem(.flexible(), spacing: 11)]
+                : [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
-            ZStack {
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 18) {
-                        // Search Bar Drawer (when Search Ornament is active)
-                        if activeOrnamentTab == .search {
-                            searchBarDrawer
-                        }
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Search Bar Drawer (when Search tab is active)
+                    if activeOrnamentTab == .search {
+                        searchBarDrawer
+                    }
 
-                        // Creator / About Card (when User Ornament is active)
-                        if activeOrnamentTab == .about {
-                            creatorAboutSection
-                        } else if activeOrnamentTab == .bag {
-                            bagCuratedSection
+                    // Creator / About Section
+                    if activeOrnamentTab == .about {
+                        creatorAboutSection
+                    } else if activeOrnamentTab == .bag {
+                        bagCuratedSection
+                    } else {
+                        // 1. Royal Blue Liquid Glass Hero Banner (Zero Text Truncation, Contained 3D Model)
+                        royalBlueHeroBanner(isWide: isWide)
+
+                        // 2. "استلهم من التراث" Header + Live 3D Toggle + 8 Category Pills
+                        inspireCatalogHeader
+
+                        // 3. Responsive Artifacts Grid (Filtered or Favorites)
+                        let displayedArtifacts = activeOrnamentTab == .favorites
+                            ? viewModel.artifacts.filter { viewModel.isFavorite($0.id) }
+                            : viewModel.filteredArtifacts
+
+                        if displayedArtifacts.isEmpty {
+                            emptyCatalogPlaceholder
                         } else {
-                            // 1. Royal Blue Glossy Glass Hero Banner (#124091 -> #1c56b8 -> #0f3478)
-                            royalBlueHeroBanner(isWide: isWide)
-
-                            // 2. "استلهم من التراث" Header + Live 3D Toggle + 3D Pop-Out + 8 Glossy Category Chips
-                            inspireCatalogHeader
-
-                            // 3. Responsive 2-Column (iPhone) / 3-Column (iPad) Artifacts Grid
-                            let displayedArtifacts = activeOrnamentTab == .favorites
-                                ? viewModel.artifacts.filter { viewModel.isFavorite($0.id) }
-                                : viewModel.filteredArtifacts
-
-                            if displayedArtifacts.isEmpty {
-                                emptyCatalogPlaceholder
-                            } else {
-                                LazyVGrid(columns: columns, spacing: isWide ? 14 : 11) {
-                                    ForEach(displayedArtifacts) { artifact in
-                                        ArtifactCardView(
-                                            artifact: artifact,
-                                            isArabic: viewModel.isArabic,
-                                            live3D: viewModel.live3DCatalog,
-                                            isFavorite: viewModel.isFavorite(artifact.id),
-                                            onToggleFavorite: {
-                                                viewModel.toggleFavorite(artifact.id)
-                                            },
-                                            onPopOut3D: {
-                                                if let idx = viewModel.artifacts.firstIndex(where: { $0.id == artifact.id }) {
-                                                    viewModel.heroArtifactIndex = idx
-                                                }
-                                                withAnimation(.spring(response: 0.38, dampingFraction: 0.8)) {
-                                                    viewModel.isPopOut3D = true
-                                                }
-                                            },
-                                            onSelect: {
-                                                onSelectArtifact(artifact)
-                                            },
-                                            onLaunchAR: {
-                                                onLaunchAR(artifact)
+                            LazyVGrid(columns: columns, spacing: 14) {
+                                ForEach(displayedArtifacts) { artifact in
+                                    ArtifactCardView(
+                                        artifact: artifact,
+                                        isArabic: viewModel.isArabic,
+                                        live3D: viewModel.live3DCatalog,
+                                        isFavorite: viewModel.isFavorite(artifact.id),
+                                        onToggleFavorite: {
+                                            viewModel.toggleFavorite(artifact.id)
+                                        },
+                                        onPopOut3D: {
+                                            if let idx = viewModel.artifacts.firstIndex(where: { $0.id == artifact.id }) {
+                                                viewModel.heroArtifactIndex = idx
                                             }
-                                        )
-                                    }
+                                            withAnimation(.spring(response: 0.38, dampingFraction: 0.8)) {
+                                                viewModel.isPopOut3D = true
+                                            }
+                                        },
+                                        onSelect: {
+                                            onSelectArtifact(artifact)
+                                        },
+                                        onLaunchAR: {
+                                            onLaunchAR(artifact)
+                                        }
+                                    )
                                 }
                             }
-
-                            // 4. 4-Cell Room Bento 3D Showcase at Bottom of Catalog
-                            fourCellBentoShowcase(isWide: isWide)
                         }
-                    }
-                    .padding(isWide ? 20 : 14)
-                    .padding(.bottom, isWide ? 12 : 54)
-                }
 
-                // 5. 3D Volume Pop-Out Overlay (when isPopOut3D == true)
-                if viewModel.isPopOut3D {
-                    volume3DPopOutOverlay
+                        // 4. 4-Cell Room Bento 3D Showcase
+                        fourCellBentoShowcase
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 96) // Extra padding so content never gets covered by floating dock
+            }
+
+            // 5. 3D Volume Pop-Out Modal
+            if viewModel.isPopOut3D {
+                volume3DPopOutOverlay
             }
         }
     }
 
-    // MARK: - 1. Royal Blue Glossy Glass Hero Banner (#124091 -> #1c56b8 -> #0f3478)
+    // MARK: - 1. Royal Blue Liquid Glass Hero Banner
     private func royalBlueHeroBanner(isWide: Bool) -> some View {
         let hero = viewModel.heroArtifact
         return ZStack {
-            // Exact Royal Blue Linear Gradient
+            // Royal Blue Gradient Base
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.071, green: 0.251, blue: 0.569), // #124091
-                            Color(red: 0.110, green: 0.337, blue: 0.722), // #1c56b8
-                            Color(red: 0.059, green: 0.204, blue: 0.471)  // #0f3478
+                            Color(red: 0.08, green: 0.28, blue: 0.64), // #1447a3
+                            Color(red: 0.12, green: 0.38, blue: 0.80), // #1e61cc
+                            Color(red: 0.06, green: 0.22, blue: 0.52)  // #0f3885
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
 
-            // Apple Glossy Glass Specular Top Sheen over Royal Blue
+            // Liquid Glass Top Sheen
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(
                     LinearGradient(
                         stops: [
-                            .init(color: Color.white.opacity(0.26), location: 0.0),
-                            .init(color: Color.white.opacity(0.06), location: 0.38),
+                            .init(color: Color.white.opacity(0.32), location: 0.0),
+                            .init(color: Color.white.opacity(0.08), location: 0.32),
                             .init(color: Color.clear, location: 0.65),
-                            .init(color: Color.black.opacity(0.18), location: 1.0)
+                            .init(color: Color.black.opacity(0.20), location: 1.0)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
 
-            // Radial Gold Highlight on Left
+            // Subtle Gold Ambient Flare
             RadialGradient(
-                colors: [Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.20), Color.clear],
+                colors: [Color(red: 1.0, green: 0.839, blue: 0.039).opacity(0.25), Color.clear],
                 center: .topLeading,
                 startRadius: 10,
-                endRadius: 240
+                endRadius: 260
             )
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
-            if isWide {
-                HStack(spacing: 16) {
-                    heroTextColumn(hero: hero, isWide: true)
+            // Hero Content
+            VStack(alignment: .leading, spacing: 14) {
+                // Top Row: Alqami Emblem + Live 3D/AR Badges
+                HStack(alignment: .center) {
+                    HStack(spacing: 8) {
+                        if let logoImg = BundleImageLoader.uiImage(named: "logo.png") {
+                            Image(uiImage: logoImg)
+                                .resizable()
+                                .renderingMode(.template)
+                                .foregroundColor(.white)
+                                .scaledToFit()
+                                .frame(width: 24, height: 24)
+                        }
+                        Text(viewModel.isArabic ? "مقتنى الأسبوع المميّز" : "FEATURED ARTIFACT")
+                            .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                            .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(Color.black.opacity(0.35)))
+
                     Spacer()
-                    heroRight3DAndLogoCluster(hero: hero, isWide: true)
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 18)
-                .environment(\.layoutDirection, .leftToRight)
-            } else {
-                // Optimized Proportional Layout for iPhone Portrait
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .top, spacing: 10) {
-                        heroTextColumn(hero: hero, isWide: false)
-                        Spacer(minLength: 4)
-                        alqamiLogoTile(size: 68)
-                    }
 
-                    // Interactive 3D Hero Turntable + Quick 3D/AR Glossy Pills
-                    ZStack(alignment: .bottomTrailing) {
-                        Artifact3DTurntableSceneView(
-                            artifact: hero,
-                            autoRotate: true,
-                            allowsCameraControl: true,
-                            cameraDistance: 0.66
-                        )
-                        .frame(height: 132)
-
-                        heroQuickActionPills(hero: hero)
-                            .padding(.bottom, 4)
+                    // Quick Switch Button
+                    Button(action: {
+                        SpatialSoundHelper.shared.playSnapHaptic()
+                        viewModel.nextHeroArtifact()
+                    }) {
+                        HStack(spacing: 4) {
+                            Text(hero.itemCode)
+                                .font(.system(size: 10.5, weight: .bold, design: .monospaced))
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.system(size: 10, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .glossyPill()
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(16)
+
+                // Titles & Description (NEVER truncated)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(viewModel.isArabic ? "استكشف كنوز التراث الإسلامي" : "Explore Islamic Heritage Treasures")
+                        .font(.system(size: 21, weight: .heavy))
+                        .foregroundColor(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(hero.title.text(isArabic: viewModel.isArabic) + " — " + hero.subtitle.text(isArabic: viewModel.isArabic))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                // 3D Turntable Preview Container (Cleanly contained with .clipped())
+                ZStack(alignment: .bottomTrailing) {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color.black.opacity(0.24))
+
+                    Artifact3DTurntableSceneView(
+                        artifact: hero,
+                        autoRotate: true,
+                        allowsCameraControl: true,
+                        cameraDistance: 0.65
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+                    // 3D & AR Quick Buttons
+                    HStack(spacing: 8) {
+                        Button(action: {
+                            SpatialSoundHelper.shared.playSnapHaptic()
+                            withAnimation(.spring()) { viewModel.isPopOut3D = true }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "rotate.3d")
+                                    .font(.system(size: 11, weight: .bold))
+                                Text("3D 360°")
+                                    .font(.system(size: 10.5, weight: .bold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .glossyPill()
+                        }
+                        .buttonStyle(.plain)
+
+                        Button(action: {
+                            onLaunchAR(hero)
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arkit")
+                                    .font(.system(size: 11, weight: .bold))
+                                Text(viewModel.isArabic ? "معاينة بالواقع المعزز" : "View in AR")
+                                    .font(.system(size: 10.5, weight: .heavy))
+                            }
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .glossyPill(isSelected: true)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(10)
+                }
+                .frame(height: 160)
+                .clipped()
+
+                // Primary Yellow Explore CTA Button
+                Button(action: {
+                    SpatialSoundHelper.shared.playSnapHaptic()
+                    onSelectArtifact(hero)
+                }) {
+                    HStack(spacing: 8) {
+                        Text(viewModel.isArabic ? "استكشف المعرض والقطع الأثرية" : "Explore Exhibition Gallery")
+                            .font(.system(size: 13.5, weight: .bold))
+                        Image(systemName: viewModel.isArabic ? "arrow.left" : "arrow.right")
+                            .font(.system(size: 12.5, weight: .bold))
+                    }
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .glossyPill(isSelected: true)
+                }
+                .buttonStyle(.plain)
             }
+            .padding(18)
         }
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.55), Color.white.opacity(0.12), Color.white.opacity(0.28)],
+                        colors: [Color.white.opacity(0.65), Color.white.opacity(0.15), Color.white.opacity(0.35)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: 1.2
                 )
         )
-        .shadow(color: Color.black.opacity(0.32), radius: 16, x: 0, y: 8)
+        .shadow(color: Color.black.opacity(0.4), radius: 18, x: 0, y: 8)
     }
 
-    private func heroTextColumn(hero: Artifact, isWide: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(viewModel.isArabic ? "اكتشف المقتنيات النادرة" : "DISCOVER RARE ARTIFACTS")
-                .font(.system(size: isWide ? 11.5 : 10.5, weight: .bold))
-                .foregroundColor(.white.opacity(0.80))
-
-            Text(viewModel.isArabic ? "استكشف كنوز التراث الإسلامي" : "Explore Islamic Heritage Treasures")
-                .font(.system(size: isWide ? 25 : 19, weight: .heavy))
-                .foregroundColor(.white)
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
-
-            Text(viewModel.isArabic ? "مقتنيات فريدة، قصص خالدة، حضارة عريقة" : "Unique artifacts, timeless stories, ancient civilization")
-                .font(.system(size: isWide ? 13 : 11.5, weight: .medium))
-                .foregroundColor(.white.opacity(0.85))
-                .lineLimit(1)
-                .padding(.bottom, 4)
-
-            // Glossy Yellow #FFD60A Pill CTA Button ("استكشف المعرض <-")
-            Button(action: {
-                SpatialSoundHelper.shared.playSnapHaptic()
-                onSelectArtifact(hero)
-            }) {
-                HStack(spacing: 6) {
-                    Text(viewModel.isArabic ? "استكشف المعرض" : "Explore Gallery")
-                        .font(.system(size: isWide ? 13 : 12, weight: .bold))
-                    Image(systemName: "arrow.left")
-                        .font(.system(size: 11.5, weight: .bold))
-                }
-                .foregroundColor(.black)
-                .padding(.horizontal, isWide ? 18 : 14)
-                .padding(.vertical, isWide ? 9 : 7)
-                .glossyPill(isSelected: true)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private func heroRight3DAndLogoCluster(hero: Artifact, isWide: Bool) -> some View {
-        HStack(spacing: 14) {
-            ZStack(alignment: .bottom) {
-                Artifact3DTurntableSceneView(
-                    artifact: hero,
-                    autoRotate: true,
-                    allowsCameraControl: true,
-                    cameraDistance: 0.64
-                )
-                .frame(width: 200, height: 175)
-
-                heroQuickActionPills(hero: hero)
-                    .padding(.bottom, 4)
-            }
-
-            alqamiLogoTile(size: 94)
-        }
-    }
-
-    private func heroQuickActionPills(hero: Artifact) -> some View {
-        HStack(spacing: 6) {
-            Button(action: {
-                SpatialSoundHelper.shared.playSnapHaptic()
-                withAnimation(.spring()) { viewModel.isPopOut3D = true }
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "rotate.3d")
-                        .font(.system(size: 10, weight: .bold))
-                    Text("3D")
-                        .font(.system(size: 10, weight: .bold))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .glossyPill()
-            }
-            .buttonStyle(.plain)
-
-            Button(action: {
-                onLaunchAR(hero)
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "arkit")
-                        .font(.system(size: 10, weight: .bold))
-                    Text("AR")
-                        .font(.system(size: 10, weight: .bold))
-                }
-                .foregroundColor(.black)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .glossyPill(isSelected: true)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private func alqamiLogoTile(size: CGFloat) -> some View {
-        Button(action: {
-            SpatialSoundHelper.shared.playSnapHaptic()
-            viewModel.nextHeroArtifact()
-        }) {
-            ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.19, green: 0.45, blue: 0.86),
-                                Color(red: 0.13, green: 0.35, blue: 0.74)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: size, height: size)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [Color.white.opacity(0.65), Color.white.opacity(0.18)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1.1
-                            )
-                    )
-                    .shadow(color: Color.black.opacity(0.32), radius: 10, x: 0, y: 5)
-
-                if let logoImg = BundleImageLoader.uiImage(named: "logo.png") {
-                    Image(uiImage: logoImg)
-                        .resizable()
-                        .renderingMode(.template)
-                        .foregroundColor(.white)
-                        .scaledToFit()
-                        .frame(width: size * 0.60, height: size * 0.60)
-                        .frame(width: size, height: size)
-                } else {
-                    Text("علقمي")
-                        .font(.system(size: size * 0.24, weight: .black, design: .serif))
-                        .foregroundColor(.white)
-                        .frame(width: size, height: size)
-                }
-
-                // Pulsing Yellow Amber Dot on Top-Right
-                Circle()
-                    .fill(Color(red: 1.0, green: 0.839, blue: 0.039))
-                    .frame(width: 11, height: 11)
-                    .shadow(color: Color(red: 1.0, green: 0.839, blue: 0.039), radius: 5)
-                    .offset(x: 2, y: -2)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - 2. "استلهم من التراث" Header + Live 3D Toggle + 8 Glossy Category Chips
+    // MARK: - 2. "استلهم من التراث" Header + Category Chips
     private var inspireCatalogHeader: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
                 Text(viewModel.isArabic ? "استلهم من التراث" : "Inspired by Heritage")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 18, weight: .heavy))
                     .foregroundColor(.white)
 
-                // Live 3D Toggle Button (Cube Icon)
+                // Live 3D Toggle Button
                 Button(action: {
                     SpatialSoundHelper.shared.playSnapHaptic()
                     withAnimation { viewModel.live3DCatalog.toggle() }
                 }) {
-                    Image(systemName: "cube")
-                        .font(.system(size: 12.5, weight: .bold))
-                        .foregroundColor(viewModel.live3DCatalog ? .black : .white)
-                        .glossyCircle(size: 32, isSelected: viewModel.live3DCatalog)
-                }
-                .buttonStyle(.plain)
-
-                // 3D Volume Pop-Out Button (Rotate3d Icon)
-                Button(action: {
-                    SpatialSoundHelper.shared.playSnapHaptic()
-                    withAnimation(.spring()) { viewModel.isPopOut3D.toggle() }
-                }) {
-                    Image(systemName: "rotate.3d")
-                        .font(.system(size: 12.5, weight: .bold))
-                        .foregroundColor(viewModel.isPopOut3D ? .black : .white)
-                        .glossyCircle(size: 32, isSelected: viewModel.isPopOut3D)
+                    HStack(spacing: 4) {
+                        Image(systemName: "cube")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("3D")
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .foregroundColor(viewModel.live3DCatalog ? .black : .white)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .glossyPill(isSelected: viewModel.live3DCatalog)
                 }
                 .buttonStyle(.plain)
 
                 Spacer()
 
                 Text("\(viewModel.filteredArtifacts.count) \(viewModel.isArabic ? "مقتنى" : "items")")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.6))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .glossyPill()
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.65))
             }
 
-            // 8 Glossy Category Chips
+            // Category Chips Row
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 7) {
+                HStack(spacing: 8) {
                     ForEach(ArtifactCategory.allCases) { category in
                         let isSelected = viewModel.selectedCategory == category
                         Button(action: {
@@ -406,32 +339,31 @@ public struct CatalogHomeView: View {
                             }
                         }) {
                             Text(category.title(isArabic: viewModel.isArabic))
-                                .font(.system(size: 12, weight: isSelected ? .bold : .semibold))
-                                .foregroundColor(isSelected ? .black : .white.opacity(0.88))
-                                .padding(.horizontal, 15)
+                                .font(.system(size: 12.5, weight: isSelected ? .bold : .medium))
+                                .foregroundColor(isSelected ? .black : .white.opacity(0.85))
+                                .padding(.horizontal, 14)
                                 .padding(.vertical, 7)
-                                .glossyPill(isSelected: isSelected, activeColor: .white)
+                                .glossyPill(isSelected: isSelected, activeColor: Color(red: 1.0, green: 0.839, blue: 0.039))
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.vertical, 2)
             }
         }
     }
 
-    // MARK: - Search Bar Drawer (Glossy Glass)
+    // MARK: - Search Bar Drawer
     private var searchBarDrawer: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(.white.opacity(0.65))
+                .foregroundColor(.white.opacity(0.6))
                 .font(.system(size: 14, weight: .semibold))
 
             TextField(
-                viewModel.isArabic ? "ابحث في مقتنيات علقمي التراثية (مخطوط، سيف، خوذة، بابل)..." : "Search Alqami artifacts...",
+                viewModel.isArabic ? "ابحث بالاسم أو الحقبة (مخطوط، سيف، خوذة، بابل)..." : "Search artifacts by name or period...",
                 text: $viewModel.searchQuery
             )
-            .font(.system(size: 13))
+            .font(.system(size: 13.5))
             .foregroundColor(.white)
 
             if !viewModel.searchQuery.isEmpty {
@@ -442,53 +374,41 @@ public struct CatalogHomeView: View {
             }
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 11)
-        .glossyGlass(cornerRadius: 16, tintOpacity: 0.16)
+        .padding(.vertical, 12)
+        .glossyGlass(cornerRadius: 18, tintOpacity: 0.20)
     }
 
-    // MARK: - 4-Cell Room Bento 3D Showcase at Bottom of Catalog
-    private func fourCellBentoShowcase(isWide: Bool) -> some View {
+    // MARK: - 4-Cell Room Bento 3D Showcase
+    private var fourCellBentoShowcase: some View {
         let a0 = viewModel.artifacts[0] // Nahj al-Balagha
         let a1 = viewModel.artifacts[2] // Zulfiqar
         let a2 = viewModel.artifacts[1] // Helmet
         let a3 = viewModel.artifacts[3] // Babylonian Map
 
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 14) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(viewModel.isArabic ? "معرض الغرفة المكانية" : "Spatial Room Bento Showcase")
-                        .font(.system(size: 17, weight: .bold))
+                    Text(viewModel.isArabic ? "معرض الغرفة المكانية" : "Spatial Heritage Bento")
+                        .font(.system(size: 18, weight: .heavy))
                         .foregroundColor(.white)
-                    Text(viewModel.isArabic ? "استعراض ثلاثي الأبعاد حي للمقتنيات النادرة" : "Live 3D spatial preview of rare artifacts")
+                    Text(viewModel.isArabic ? "نماذج تفاعلية ثلاثية الأبعاد تدعم فحص الواقع المعزز" : "Interactive 3D models with native AR inspect")
                         .font(.system(size: 11.5))
                         .foregroundColor(.white.opacity(0.6))
                 }
                 Spacer()
                 Text("BENTO 3D")
-                    .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                    .font(.system(size: 9.5, weight: .black, design: .monospaced))
                     .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .glossyPill()
             }
 
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 11), GridItem(.flexible(), spacing: 11)], spacing: 11) {
-                bentoCell(
-                    artifact: a0,
-                    badge: viewModel.isArabic ? "مخطوط نادر" : "MANUSCRIPT"
-                )
-                bentoCell(
-                    artifact: a1,
-                    badge: viewModel.isArabic ? "خزانة السلاح" : "ARMORY"
-                )
-                bentoCell(
-                    artifact: a2,
-                    badge: viewModel.isArabic ? "دروع الفرسان" : "CAVALRY"
-                )
-                bentoCell(
-                    artifact: a3,
-                    badge: viewModel.isArabic ? "بلاد الرافدين" : "MESOPOTAMIA"
-                )
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                bentoCell(artifact: a0, badge: viewModel.isArabic ? "مخطوط نادر" : "MANUSCRIPT")
+                bentoCell(artifact: a1, badge: viewModel.isArabic ? "خزانة السلاح" : "ARMORY")
+                bentoCell(artifact: a2, badge: viewModel.isArabic ? "دروع الفرسان" : "CAVALRY")
+                bentoCell(artifact: a3, badge: viewModel.isArabic ? "بلاد الرافدين" : "MESOPOTAMIA")
             }
         }
         .padding(.top, 8)
@@ -509,12 +429,11 @@ public struct CatalogHomeView: View {
                     Text(badge)
                         .font(.system(size: 9.5, weight: .bold))
                         .foregroundColor(.white)
-                        .lineLimit(1)
-                        .padding(.horizontal, 9)
+                        .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .glossyPill()
 
-                    Spacer(minLength: 4)
+                    Spacer()
 
                     Button(action: { onLaunchAR(artifact) }) {
                         Image(systemName: "arkit")
@@ -524,9 +443,11 @@ public struct CatalogHomeView: View {
                     }
                     .buttonStyle(.plain)
                 }
+
                 Spacer()
+
                 HStack {
-                    VStack(alignment: .leading, spacing: 1) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(artifact.title.text(isArabic: viewModel.isArabic))
                             .font(.system(size: 12.5, weight: .bold))
                             .foregroundColor(.white)
@@ -536,23 +457,23 @@ public struct CatalogHomeView: View {
                             .foregroundColor(.white.opacity(0.68))
                             .lineLimit(1)
                     }
-                    Spacer(minLength: 4)
+                    Spacer()
                     Button(action: { onSelectArtifact(artifact) }) {
                         Image(systemName: "arrow.up.left")
-                            .font(.system(size: 10.5, weight: .bold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.white)
-                            .glossyCircle(size: 26, isSelected: false)
+                            .glossyCircle(size: 26)
                     }
                     .buttonStyle(.plain)
                 }
             }
             .padding(10)
         }
-        .frame(height: 175)
+        .frame(height: 180)
         .glossyGlass(cornerRadius: 20, tintOpacity: 0.22)
     }
 
-    // MARK: - 3D Volume Pop-Out Overlay (Glossy Glass)
+    // MARK: - 3D Volume Pop-Out Overlay
     private var volume3DPopOutOverlay: some View {
         let hero = viewModel.heroArtifact
         let callouts: [(titleAr: String, descAr: String)] = [
@@ -562,8 +483,7 @@ public struct CatalogHomeView: View {
         ]
 
         return ZStack {
-            Color.black.opacity(0.72)
-                .ignoresSafeArea()
+            Color.black.opacity(0.78).ignoresSafeArea()
                 .onTapGesture {
                     withAnimation(.spring()) { viewModel.isPopOut3D = false }
                 }
@@ -576,51 +496,33 @@ public struct CatalogHomeView: View {
                     Text("3D VOLUME • \(hero.title.ar)")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.white)
-                        .lineLimit(1)
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
                 .glossyPill()
 
-                ZStack(alignment: .bottom) {
-                    Artifact3DTurntableSceneView(
-                        artifact: hero,
-                        autoRotate: true,
-                        allowsCameraControl: true,
-                        cameraDistance: 0.60
-                    )
-                    .frame(height: 260)
+                Artifact3DTurntableSceneView(
+                    artifact: hero,
+                    autoRotate: true,
+                    allowsCameraControl: true,
+                    cameraDistance: 0.60
+                )
+                .frame(height: 250)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
-                    HStack(spacing: 10) {
-                        ForEach(0..<3, id: \.self) { idx in
-                            Button(action: {
-                                SpatialSoundHelper.shared.playSnapHaptic()
-                                withAnimation { activePopOutCallout = idx }
-                            }) {
-                                HStack(spacing: 5) {
-                                    Text("\(idx + 1)")
-                                        .font(.system(size: 11, weight: .black))
-                                        .foregroundColor(activePopOutCallout == idx ? .black : .white)
-                                        .frame(width: 22, height: 22)
-                                        .background(
-                                            Circle()
-                                                .fill(activePopOutCallout == idx ? Color(red: 1.0, green: 0.839, blue: 0.039) : Color.white.opacity(0.18))
-                                        )
-                                    if activePopOutCallout == idx {
-                                        Text(callouts[idx].titleAr)
-                                            .font(.system(size: 10.5, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .lineLimit(1)
-                                            .padding(.trailing, 6)
-                                    }
-                                }
-                                .padding(4)
-                                .glossyPill()
-                            }
-                            .buttonStyle(.plain)
+                HStack(spacing: 10) {
+                    ForEach(0..<3, id: \.self) { idx in
+                        Button(action: {
+                            SpatialSoundHelper.shared.playSnapHaptic()
+                            withAnimation { activePopOutCallout = idx }
+                        }) {
+                            Text("\(idx + 1)")
+                                .font(.system(size: 11.5, weight: .black))
+                                .foregroundColor(activePopOutCallout == idx ? .black : .white)
+                                .glossyCircle(size: 32, isSelected: activePopOutCallout == idx)
                         }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.bottom, 8)
                 }
 
                 VStack(spacing: 4) {
@@ -640,15 +542,12 @@ public struct CatalogHomeView: View {
                     Button(action: {
                         withAnimation(.spring()) { viewModel.isPopOut3D = false }
                     }) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "xmark")
-                            Text(viewModel.isArabic ? "إغلاق" : "Close")
-                        }
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 9)
-                        .glossyPill()
+                        Text(viewModel.isArabic ? "إغلاق" : "Close")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 9)
+                            .glossyPill()
                     }
                     .buttonStyle(.plain)
 
@@ -675,7 +574,7 @@ public struct CatalogHomeView: View {
         }
     }
 
-    // MARK: - Creator & Platform About Section (Glossy Glass)
+    // MARK: - About Creator & Platform Section
     private var creatorAboutSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
@@ -685,15 +584,15 @@ public struct CatalogHomeView: View {
                         .renderingMode(.template)
                         .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                         .scaledToFit()
-                        .frame(width: 42, height: 42)
+                        .frame(width: 44, height: 44)
                         .padding(10)
                         .glossyGlass(cornerRadius: 16)
                 }
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("منصة علقمي للتراث المكاني • ALQAMI Spatial")
+                    Text("منصة علقمي للتراث المكاني • ALQAMI")
                         .font(.system(size: 17, weight: .bold))
                         .foregroundColor(.white)
-                    Text("designed & developed by isaac faleh · تصميم و تطوير اسحاق فالح")
+                    Text("designed & developed by isaac faleh · اسحاق فالح")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(Color(red: 1.0, green: 0.839, blue: 0.039))
                 }
@@ -708,10 +607,10 @@ public struct CatalogHomeView: View {
         .glossyGlass(cornerRadius: 22, tintOpacity: 0.20)
     }
 
-    // MARK: - Curated Bag / Exhibition Vault Section (Glossy Glass)
+    // MARK: - Curated Bag Section
     private var bagCuratedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(viewModel.isArabic ? "حقيبة المقتنيات والمعرض الشخصي" : "Curated Spatial Exhibition Vault")
+            Text(viewModel.isArabic ? "حقيبة المقتنيات والمعرض الشخصي" : "Curated Exhibition Vault")
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
 

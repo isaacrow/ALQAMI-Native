@@ -1,33 +1,34 @@
 import SwiftUI
 
-// MARK: - Apple Glossy Glass Material System (Liquid Specular Glass + Rim Reflection + Depth Shadow)
-public struct AppleGlossyGlassModifier: ViewModifier {
+// MARK: - Apple Flagship Liquid Glass Material System
+// Designed for iPhone 15 Pro Max Super Retina XDR OLED & ProMotion Displays
+public struct AppleLiquidGlassModifier: ViewModifier {
     public var cornerRadius: CGFloat = 24
-    public var tintOpacity: Double = 0.14
-    public var rimOpacity: Double = 0.42
-    public var shadowRadius: CGFloat = 18
+    public var tintOpacity: Double = 0.16
+    public var rimOpacity: Double = 0.45
+    public var shadowRadius: CGFloat = 20
 
     public func body(content: Content) -> some View {
         content
             .background(
                 ZStack {
-                    // 1. Core Apple UltraThin Material Blur
+                    // 1. Real Apple UltraThin Blur
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .fill(.ultraThinMaterial)
 
-                    // 2. Dark Spatial Contrast Base
+                    // 2. Deep OLED Contrast Base
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(Color(red: 0.07, green: 0.09, blue: 0.14).opacity(0.55))
+                        .fill(Color(red: 0.06, green: 0.08, blue: 0.12).opacity(0.62))
 
-                    // 3. Top-to-Bottom Glossy Specular Sheen (Curved Glass Reflection)
+                    // 3. Liquid Specular Sheen (Real Curved Surface Light Dispersion)
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .fill(
                             LinearGradient(
                                 stops: [
-                                    .init(color: Color.white.opacity(tintOpacity * 1.65), location: 0.0),
-                                    .init(color: Color.white.opacity(tintOpacity * 0.45), location: 0.36),
-                                    .init(color: Color.clear, location: 0.55),
-                                    .init(color: Color.white.opacity(tintOpacity * 0.25), location: 1.0)
+                                    .init(color: Color.white.opacity(tintOpacity * 2.2), location: 0.0),
+                                    .init(color: Color.white.opacity(tintOpacity * 0.7), location: 0.28),
+                                    .init(color: Color.clear, location: 0.52),
+                                    .init(color: Color.white.opacity(tintOpacity * 0.35), location: 1.0)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -36,15 +37,15 @@ public struct AppleGlossyGlassModifier: ViewModifier {
                 }
             )
             .overlay(
-                // 4. Dual Specular Rim Highlight (Bright Top-Left Edge, Subtle Bottom-Right Edge)
+                // 4. Dual Liquid Specular Rim Reflection
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(
+                    .strokeBorder(
                         LinearGradient(
                             stops: [
-                                .init(color: Color.white.opacity(rimOpacity), location: 0.0),
-                                .init(color: Color.white.opacity(rimOpacity * 0.35), location: 0.45),
-                                .init(color: Color.white.opacity(0.08), location: 0.8),
-                                .init(color: Color.white.opacity(rimOpacity * 0.5), location: 1.0)
+                                .init(color: Color.white.opacity(rimOpacity * 1.5), location: 0.0),
+                                .init(color: Color.white.opacity(rimOpacity * 0.4), location: 0.42),
+                                .init(color: Color.white.opacity(0.08), location: 0.75),
+                                .init(color: Color.white.opacity(rimOpacity * 0.7), location: 1.0)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -52,26 +53,26 @@ public struct AppleGlossyGlassModifier: ViewModifier {
                         lineWidth: 1.2
                     )
             )
-            .shadow(color: Color.black.opacity(0.38), radius: shadowRadius, x: 0, y: 8)
+            .shadow(color: Color.black.opacity(0.42), radius: shadowRadius, x: 0, y: 10)
     }
 }
 
-// MARK: - Apple Glossy Glass Capsule / Pill Modifier
-public struct AppleGlossyPillModifier: ViewModifier {
-    public var isHighlighted: Bool = false
-    public var accentColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)
+// MARK: - Apple Liquid Glass Capsule / Pill
+public struct AppleLiquidPillModifier: ViewModifier {
+    public var isSelected: Bool = false
+    public var activeColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)
 
     public func body(content: Content) -> some View {
         content
             .background(
                 ZStack {
-                    if isHighlighted {
+                    if isSelected {
                         Capsule(style: .continuous)
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        accentColor,
-                                        accentColor.opacity(0.85)
+                                        activeColor,
+                                        activeColor.opacity(0.88)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -80,7 +81,7 @@ public struct AppleGlossyPillModifier: ViewModifier {
                         Capsule(style: .continuous)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.white.opacity(0.45), Color.clear],
+                                    colors: [Color.white.opacity(0.55), Color.clear],
                                     startPoint: .top,
                                     endPoint: .center
                                 )
@@ -89,11 +90,11 @@ public struct AppleGlossyPillModifier: ViewModifier {
                         Capsule(style: .continuous)
                             .fill(.ultraThinMaterial)
                         Capsule(style: .continuous)
-                            .fill(Color(red: 0.08, green: 0.10, blue: 0.15).opacity(0.52))
+                            .fill(Color(red: 0.08, green: 0.10, blue: 0.16).opacity(0.58))
                         Capsule(style: .continuous)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.white.opacity(0.22), Color.clear],
+                                    colors: [Color.white.opacity(0.28), Color.clear],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
@@ -103,40 +104,40 @@ public struct AppleGlossyPillModifier: ViewModifier {
             )
             .overlay(
                 Capsule(style: .continuous)
-                    .stroke(
+                    .strokeBorder(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(isHighlighted ? 0.65 : 0.38),
-                                Color.white.opacity(0.10)
+                                Color.white.opacity(isSelected ? 0.75 : 0.42),
+                                Color.white.opacity(0.12)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
-                        lineWidth: 1
+                        lineWidth: 1.1
                     )
             )
-            .shadow(color: Color.black.opacity(0.28), radius: 10, x: 0, y: 4)
+            .shadow(color: Color.black.opacity(isSelected ? 0.35 : 0.22), radius: 8, x: 0, y: 4)
     }
 }
 
-// MARK: - Apple Glossy Circle Button Modifier
-public struct AppleGlossyCircleModifier: ViewModifier {
+// MARK: - Apple Liquid Glass Circle Button
+public struct AppleLiquidCircleModifier: ViewModifier {
     public var size: CGFloat = 38
-    public var isHighlighted: Bool = false
-    public var accentColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)
+    public var isSelected: Bool = false
+    public var activeColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)
 
     public func body(content: Content) -> some View {
         content
             .frame(width: size, height: size)
             .background(
                 ZStack {
-                    if isHighlighted {
+                    if isSelected {
                         Circle()
-                            .fill(accentColor)
+                            .fill(activeColor)
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.white.opacity(0.45), Color.clear],
+                                    colors: [Color.white.opacity(0.55), Color.clear],
                                     startPoint: .top,
                                     endPoint: .center
                                 )
@@ -145,11 +146,11 @@ public struct AppleGlossyCircleModifier: ViewModifier {
                         Circle()
                             .fill(.ultraThinMaterial)
                         Circle()
-                            .fill(Color(red: 0.08, green: 0.10, blue: 0.15).opacity(0.50))
+                            .fill(Color(red: 0.08, green: 0.10, blue: 0.16).opacity(0.56))
                         Circle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.white.opacity(0.26), Color.clear],
+                                    colors: [Color.white.opacity(0.30), Color.clear],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -159,29 +160,26 @@ public struct AppleGlossyCircleModifier: ViewModifier {
             )
             .overlay(
                 Circle()
-                    .stroke(
+                    .strokeBorder(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(isHighlighted ? 0.7 : 0.42),
-                                Color.white.opacity(0.10)
+                                Color.white.opacity(isSelected ? 0.80 : 0.45),
+                                Color.white.opacity(0.12)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
-                        lineWidth: 1
+                        lineWidth: 1.1
                     )
             )
-            .shadow(color: Color.black.opacity(0.28), radius: 8, x: 0, y: 4)
+            .shadow(color: Color.black.opacity(0.30), radius: 8, x: 0, y: 4)
     }
 }
 
-// MARK: - Legacy Compatibility Wrapper
-public typealias VisionGlassModifier = AppleGlossyGlassModifier
-public typealias VisionPillModifier = AppleGlossyPillModifier
-
+// MARK: - View Extension API
 public extension View {
-    func glossyGlass(cornerRadius: CGFloat = 24, tintOpacity: Double = 0.14, rimOpacity: Double = 0.42, shadowRadius: CGFloat = 18) -> some View {
-        self.modifier(AppleGlossyGlassModifier(cornerRadius: cornerRadius, tintOpacity: tintOpacity, rimOpacity: rimOpacity, shadowRadius: shadowRadius))
+    func glossyGlass(cornerRadius: CGFloat = 24, tintOpacity: Double = 0.16, rimOpacity: Double = 0.45, shadowRadius: CGFloat = 20) -> some View {
+        self.modifier(AppleLiquidGlassModifier(cornerRadius: cornerRadius, tintOpacity: tintOpacity, rimOpacity: rimOpacity, shadowRadius: shadowRadius))
     }
 
     func glossyPill(
@@ -191,23 +189,25 @@ public extension View {
         accentColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)
     ) -> some View {
         let color = activeColor != Color(red: 1.0, green: 0.839, blue: 0.039) ? activeColor : accentColor
-        return self.modifier(AppleGlossyPillModifier(isHighlighted: isSelected || isHighlighted, accentColor: color))
+        return self.modifier(AppleLiquidPillModifier(isSelected: isSelected || isHighlighted, activeColor: color))
     }
 
     func glossyCircle(
         size: CGFloat = 38,
         isSelected: Bool = false,
         isHighlighted: Bool = false,
+        activeColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039),
         accentColor: Color = Color(red: 1.0, green: 0.839, blue: 0.039)
     ) -> some View {
-        self.modifier(AppleGlossyCircleModifier(size: size, isHighlighted: isSelected || isHighlighted, accentColor: accentColor))
+        let color = activeColor != Color(red: 1.0, green: 0.839, blue: 0.039) ? activeColor : accentColor
+        return self.modifier(AppleLiquidCircleModifier(size: size, isSelected: isSelected || isHighlighted, activeColor: color))
     }
 
     func visionGlass(cornerRadius: CGFloat = 20, strokeOpacity: Double = 0.22, shadowRadius: CGFloat = 16) -> some View {
-        self.modifier(AppleGlossyGlassModifier(cornerRadius: cornerRadius, tintOpacity: 0.14, rimOpacity: strokeOpacity + 0.15, shadowRadius: shadowRadius))
+        self.modifier(AppleLiquidGlassModifier(cornerRadius: cornerRadius, tintOpacity: 0.16, rimOpacity: strokeOpacity + 0.18, shadowRadius: shadowRadius))
     }
 
     func visionPill(isHighlighted: Bool = false) -> some View {
-        self.modifier(AppleGlossyPillModifier(isHighlighted: isHighlighted))
+        self.modifier(AppleLiquidPillModifier(isSelected: isHighlighted))
     }
 }
