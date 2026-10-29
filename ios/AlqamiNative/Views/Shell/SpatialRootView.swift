@@ -443,7 +443,7 @@ public struct SpatialRootView: View {
     private func launchLandmarkInAR(_ landmark: BaghdadLandmark) {
         // Find matching artifact or use hero artifact
         let modelId = landmark.modelIdentifier ?? ""
-        if let match = catalogViewModel.artifacts.first(where: { $0.id.contains(modelId) || $0.model.usdzFile.contains(modelId) }) {
+        if let match = catalogViewModel.artifacts.first(where: { $0.id.contains(modelId) || $0.model.usdzFilename.contains(modelId) }) {
             activeARArtifact = match
         } else {
             activeARArtifact = catalogViewModel.heroArtifact
@@ -538,7 +538,8 @@ public struct DuoFoldShowcaseModalView: View {
         ZStack {
             Artifact3DTurntableSceneView(
                 artifact: current,
-                enableGestures: true
+                autoRotate: true,
+                allowsCameraControl: true
             )
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
 
